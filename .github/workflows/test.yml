@@ -1,0 +1,22 @@
+name: Check Secrets Synced
+
+on:
+  workflow_run:
+    workflows: ["Sync"]
+    types:
+      - completed
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install jest
+        run: npm install
+      # We do this by checking if the sha256 hash of our secret = hardcoded hash in the index.test.js file
+      - name: check if secrets were synced
+        run: npm test
+        env:
+          TEST_SECRET: ${{ secrets.TEST_SECRET }}
+          TEST_ASSYM_KEY: ${{ secrets.TEST_ASSYM_KEY }}
+          TEST_SYM_KEY: ${{ secrets.TEST_SYM_KEY }}

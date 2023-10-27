@@ -1,0 +1,17 @@
+name: Sync
+
+on: [push]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Packages
+        run: npm install
+      - uses: ./
+        with:
+          github_token: ${{secrets.SECRET_PAT}}
+          pangea_token: ${{secrets.PANGEA_TOKEN}}
+          pangea_default_folder: ${{secrets.PANGEA_DEFAULT_FOLDER}}
+          pangea_domain: ${{secrets.PANGEA_DOMAIN}}

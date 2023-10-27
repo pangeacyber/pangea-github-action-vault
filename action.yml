@@ -1,0 +1,21 @@
+name: Pangea Vault Secrets Action
+description: 'Fetches secrets from Pangea and loads them in your job environment'
+
+inputs:
+  pangea_token:
+    description: 'Job command to run (ex - npm run dev)'
+    required: false
+  pangea_domain:
+    description: 'Pangea Domain'
+    required: false
+    default: aws.us.pangea.cloud
+  pangea_default_folder:
+    description: 'Pangea folder to pull secrets from'
+    required: false
+  github_token:
+    description: 'Github personal access token'
+    required: true
+
+runs:
+  using: 'node16'
+  main: './index.mjs'
