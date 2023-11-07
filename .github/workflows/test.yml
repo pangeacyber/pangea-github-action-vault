@@ -10,7 +10,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install jest
         run: npm install
       # We do this by checking if the sha256 hash of our secret = hardcoded hash in the index.test.js file
