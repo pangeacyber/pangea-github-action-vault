@@ -6,7 +6,7 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: pangeacyber/pangea-github-action-vault@latest
+      - uses: pangeacyber/pangea-github-action-vault@1.0.2
         with:
           github_token: ${{secrets.SECRET_PAT}}
           pangea_token: ${{secrets.PANGEA_TOKEN}}
