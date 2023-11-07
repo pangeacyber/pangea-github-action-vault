@@ -1,6 +1,6 @@
 # Use Secrets from Pangea Vault in GitHub Actions
 
-Use this action to fetch secrets from Pangea Vault and load them securely into your GitHub actions pipelines. To use this action, a Pangea account is required.
+Use this action to fetch secrets from [Pangea Vault](https://pangea.cloud/services/vault?utm_source=github&utm_medium=readme&utm_campaign=pangea-github-action-vault) and load them securely into your GitHub actions pipelines. To use this action, a Pangea account is required.
 
 To get a Pangea account [Sign up for free](https://pangea.cloud/signup)
 
@@ -22,6 +22,7 @@ Note: The way this action is designed, it can only inject secrets in the main br
 
 The action involves 2 steps:
 1. Syncing Secrets from Pangea Vault to GitHub Secrets
+Create a file `.github/workflows/sync.yml` which contains the following workflow:
 ```yml
 name: Sync
 
@@ -40,6 +41,7 @@ jobs:
 ```
 
 2. Loading secrets into your job runtime
+To use your synced secrets in a workflow, copy the `on:` block which makes your jobs run after the secrets are up-to-date. Also, for each job where you want to import secrets in the `env:` block as shown below:
 ```yml
 name: Check Secrets Synced
 
@@ -63,6 +65,9 @@ jobs:
           # ...
           # add all the secrets you want to add into the env as shown above
 ```
+
+## Examples
+[snpranav/my-cool-app](https://github.com/snpranav/my-cool-app) is a great starter app that builds a [Next.js](https://nextjs.org) app with env variables synced with Pangea Vault
 
 ## LICENSE
 [MIT](./LICENSE)
