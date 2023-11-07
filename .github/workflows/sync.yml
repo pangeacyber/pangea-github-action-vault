@@ -6,10 +6,7 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Install Packages
-        run: npm install
-      - uses: ./
+      - uses: pangeacyber/pangea-github-action-vault@main
         with:
           github_token: ${{secrets.SECRET_PAT}}
           pangea_token: ${{secrets.PANGEA_TOKEN}}
