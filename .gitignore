@@ -1,4 +1,6 @@
-node_modules/
+# Since libsodium can't be compiled using ncc, for now the only hack is to push the node_modules dir
+# Reference - https://github.com/jedisct1/libsodium.js/issues/263
+# node_modules/
 
 # Editors
 .vscode/
