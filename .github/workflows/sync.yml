@@ -1,6 +1,9 @@
 name: Sync
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   sync:
