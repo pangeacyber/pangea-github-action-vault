@@ -26,7 +26,11 @@ Create a file `.github/workflows/sync.yml` which contains the following workflow
 ```yml
 name: Sync
 
-on: [push]
+on:
+  push:
+    branches:
+      # Replace with configured GitHub default branch.
+      - main
 
 jobs:
   sync:
