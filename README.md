@@ -2,7 +2,7 @@
 
 Use this action to fetch secrets from [Pangea Vault](https://pangea.cloud/services/vault?utm_source=github&utm_medium=readme&utm_campaign=pangea-github-action-vault) and load them securely into your GitHub actions pipelines. To use this action, a Pangea account is required.
 
-To get a Pangea account [Sign up for free](https://pangea.cloud/signup)
+To get a Pangea account [Sign up for free](https://l.pangea.cloud/GitHubActionsVaultRepo)
 
 ## How it Works
 Pangea is a collection of security services, all API-based, that can quickly and easily be added to any cloud application, embedded in the runtime code. Pangea provides app builders with a wide selection of security services to enable easily embedding security into their applications. Similar in nature to AWS for Compute APIs, Twilio for Communications APIs, or Stripe for Billing APIs, now there is Pangea for Security APIs.
@@ -11,7 +11,7 @@ This action authenticates with Pangea and securely fetches secrets from Pangea a
 
 ## Set up Pangea
 To configure Pangea:
-1. Get your PANGEA_TOKEN and PANGEA_DOMAIN from [the getting started guide](https://pangea.cloud/docs/vault/getting-started/).
+1. Get your PANGEA_TOKEN and PANGEA_DOMAIN from [the getting started guide](https://l.pangea.cloud/GitHubActionsVaultRepo-gettingstarted).
 2. When you create your token in the guide, make sure it has access to Vault
 3. Store your app secrets in a folder and note down the folder path where the app secrets are stored
 4. Create a new GitHub personal access token with access to the desired repository and give it read and write permissions on the `Environments`. You can create it in [the developer settings](https://github.com/settings/personal-access-tokens/new)
