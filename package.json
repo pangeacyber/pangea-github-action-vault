@@ -1,7 +1,7 @@
 {
   "name": "pangea-github-action-vault",
   "version": "1.0.0",
-  "description": "JavaScript Action Template",
+  "description": "Use Pangea Vault secrets in GitHub Actions pipelines.",
   "main": "index.mjs",
   "scripts": {
     "lint": "eslint .",
