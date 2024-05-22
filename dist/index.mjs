@@ -2073,6 +2073,243 @@ function isLoopbackAddress(host) {
 
 /***/ }),
 
+/***/ 6287:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+
+// Copyright Amazon.com Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AwsCrc32c = void 0;
+var tslib_1 = __nccwpck_require__(4351);
+var util_1 = __nccwpck_require__(4871);
+var index_1 = __nccwpck_require__(7035);
+var AwsCrc32c = /** @class */ (function () {
+    function AwsCrc32c() {
+        this.crc32c = new index_1.Crc32c();
+    }
+    AwsCrc32c.prototype.update = function (toHash) {
+        if ((0, util_1.isEmptyData)(toHash))
+            return;
+        this.crc32c.update((0, util_1.convertToBuffer)(toHash));
+    };
+    AwsCrc32c.prototype.digest = function () {
+        return tslib_1.__awaiter(this, void 0, void 0, function () {
+            return tslib_1.__generator(this, function (_a) {
+                return [2 /*return*/, (0, util_1.numToUint8)(this.crc32c.digest())];
+            });
+        });
+    };
+    AwsCrc32c.prototype.reset = function () {
+        this.crc32c = new index_1.Crc32c();
+    };
+    return AwsCrc32c;
+}());
+exports.AwsCrc32c = AwsCrc32c;
+//# sourceMappingURL=aws_crc32c.js.map
+
+/***/ }),
+
+/***/ 7035:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+
+// Copyright Amazon.com Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AwsCrc32c = exports.Crc32c = exports.crc32c = void 0;
+var tslib_1 = __nccwpck_require__(4351);
+var util_1 = __nccwpck_require__(4871);
+function crc32c(data) {
+    return new Crc32c().update(data).digest();
+}
+exports.crc32c = crc32c;
+var Crc32c = /** @class */ (function () {
+    function Crc32c() {
+        this.checksum = 0xffffffff;
+    }
+    Crc32c.prototype.update = function (data) {
+        var e_1, _a;
+        try {
+            for (var data_1 = tslib_1.__values(data), data_1_1 = data_1.next(); !data_1_1.done; data_1_1 = data_1.next()) {
+                var byte = data_1_1.value;
+                this.checksum =
+                    (this.checksum >>> 8) ^ lookupTable[(this.checksum ^ byte) & 0xff];
+            }
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (data_1_1 && !data_1_1.done && (_a = data_1.return)) _a.call(data_1);
+            }
+            finally { if (e_1) throw e_1.error; }
+        }
+        return this;
+    };
+    Crc32c.prototype.digest = function () {
+        return (this.checksum ^ 0xffffffff) >>> 0;
+    };
+    return Crc32c;
+}());
+exports.Crc32c = Crc32c;
+// prettier-ignore
+var a_lookupTable = [
+    0x00000000, 0xF26B8303, 0xE13B70F7, 0x1350F3F4, 0xC79A971F, 0x35F1141C, 0x26A1E7E8, 0xD4CA64EB,
+    0x8AD958CF, 0x78B2DBCC, 0x6BE22838, 0x9989AB3B, 0x4D43CFD0, 0xBF284CD3, 0xAC78BF27, 0x5E133C24,
+    0x105EC76F, 0xE235446C, 0xF165B798, 0x030E349B, 0xD7C45070, 0x25AFD373, 0x36FF2087, 0xC494A384,
+    0x9A879FA0, 0x68EC1CA3, 0x7BBCEF57, 0x89D76C54, 0x5D1D08BF, 0xAF768BBC, 0xBC267848, 0x4E4DFB4B,
+    0x20BD8EDE, 0xD2D60DDD, 0xC186FE29, 0x33ED7D2A, 0xE72719C1, 0x154C9AC2, 0x061C6936, 0xF477EA35,
+    0xAA64D611, 0x580F5512, 0x4B5FA6E6, 0xB93425E5, 0x6DFE410E, 0x9F95C20D, 0x8CC531F9, 0x7EAEB2FA,
+    0x30E349B1, 0xC288CAB2, 0xD1D83946, 0x23B3BA45, 0xF779DEAE, 0x05125DAD, 0x1642AE59, 0xE4292D5A,
+    0xBA3A117E, 0x4851927D, 0x5B016189, 0xA96AE28A, 0x7DA08661, 0x8FCB0562, 0x9C9BF696, 0x6EF07595,
+    0x417B1DBC, 0xB3109EBF, 0xA0406D4B, 0x522BEE48, 0x86E18AA3, 0x748A09A0, 0x67DAFA54, 0x95B17957,
+    0xCBA24573, 0x39C9C670, 0x2A993584, 0xD8F2B687, 0x0C38D26C, 0xFE53516F, 0xED03A29B, 0x1F682198,
+    0x5125DAD3, 0xA34E59D0, 0xB01EAA24, 0x42752927, 0x96BF4DCC, 0x64D4CECF, 0x77843D3B, 0x85EFBE38,
+    0xDBFC821C, 0x2997011F, 0x3AC7F2EB, 0xC8AC71E8, 0x1C661503, 0xEE0D9600, 0xFD5D65F4, 0x0F36E6F7,
+    0x61C69362, 0x93AD1061, 0x80FDE395, 0x72966096, 0xA65C047D, 0x5437877E, 0x4767748A, 0xB50CF789,
+    0xEB1FCBAD, 0x197448AE, 0x0A24BB5A, 0xF84F3859, 0x2C855CB2, 0xDEEEDFB1, 0xCDBE2C45, 0x3FD5AF46,
+    0x7198540D, 0x83F3D70E, 0x90A324FA, 0x62C8A7F9, 0xB602C312, 0x44694011, 0x5739B3E5, 0xA55230E6,
+    0xFB410CC2, 0x092A8FC1, 0x1A7A7C35, 0xE811FF36, 0x3CDB9BDD, 0xCEB018DE, 0xDDE0EB2A, 0x2F8B6829,
+    0x82F63B78, 0x709DB87B, 0x63CD4B8F, 0x91A6C88C, 0x456CAC67, 0xB7072F64, 0xA457DC90, 0x563C5F93,
+    0x082F63B7, 0xFA44E0B4, 0xE9141340, 0x1B7F9043, 0xCFB5F4A8, 0x3DDE77AB, 0x2E8E845F, 0xDCE5075C,
+    0x92A8FC17, 0x60C37F14, 0x73938CE0, 0x81F80FE3, 0x55326B08, 0xA759E80B, 0xB4091BFF, 0x466298FC,
+    0x1871A4D8, 0xEA1A27DB, 0xF94AD42F, 0x0B21572C, 0xDFEB33C7, 0x2D80B0C4, 0x3ED04330, 0xCCBBC033,
+    0xA24BB5A6, 0x502036A5, 0x4370C551, 0xB11B4652, 0x65D122B9, 0x97BAA1BA, 0x84EA524E, 0x7681D14D,
+    0x2892ED69, 0xDAF96E6A, 0xC9A99D9E, 0x3BC21E9D, 0xEF087A76, 0x1D63F975, 0x0E330A81, 0xFC588982,
+    0xB21572C9, 0x407EF1CA, 0x532E023E, 0xA145813D, 0x758FE5D6, 0x87E466D5, 0x94B49521, 0x66DF1622,
+    0x38CC2A06, 0xCAA7A905, 0xD9F75AF1, 0x2B9CD9F2, 0xFF56BD19, 0x0D3D3E1A, 0x1E6DCDEE, 0xEC064EED,
+    0xC38D26C4, 0x31E6A5C7, 0x22B65633, 0xD0DDD530, 0x0417B1DB, 0xF67C32D8, 0xE52CC12C, 0x1747422F,
+    0x49547E0B, 0xBB3FFD08, 0xA86F0EFC, 0x5A048DFF, 0x8ECEE914, 0x7CA56A17, 0x6FF599E3, 0x9D9E1AE0,
+    0xD3D3E1AB, 0x21B862A8, 0x32E8915C, 0xC083125F, 0x144976B4, 0xE622F5B7, 0xF5720643, 0x07198540,
+    0x590AB964, 0xAB613A67, 0xB831C993, 0x4A5A4A90, 0x9E902E7B, 0x6CFBAD78, 0x7FAB5E8C, 0x8DC0DD8F,
+    0xE330A81A, 0x115B2B19, 0x020BD8ED, 0xF0605BEE, 0x24AA3F05, 0xD6C1BC06, 0xC5914FF2, 0x37FACCF1,
+    0x69E9F0D5, 0x9B8273D6, 0x88D28022, 0x7AB90321, 0xAE7367CA, 0x5C18E4C9, 0x4F48173D, 0xBD23943E,
+    0xF36E6F75, 0x0105EC76, 0x12551F82, 0xE03E9C81, 0x34F4F86A, 0xC69F7B69, 0xD5CF889D, 0x27A40B9E,
+    0x79B737BA, 0x8BDCB4B9, 0x988C474D, 0x6AE7C44E, 0xBE2DA0A5, 0x4C4623A6, 0x5F16D052, 0xAD7D5351,
+];
+var lookupTable = (0, util_1.uint32ArrayFrom)(a_lookupTable);
+var aws_crc32c_1 = __nccwpck_require__(6287);
+Object.defineProperty(exports, "AwsCrc32c", ({ enumerable: true, get: function () { return aws_crc32c_1.AwsCrc32c; } }));
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ 3670:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+
+// Copyright Amazon.com Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.convertToBuffer = void 0;
+var util_utf8_1 = __nccwpck_require__(1895);
+// Quick polyfill
+var fromUtf8 = typeof Buffer !== "undefined" && Buffer.from
+    ? function (input) { return Buffer.from(input, "utf8"); }
+    : util_utf8_1.fromUtf8;
+function convertToBuffer(data) {
+    // Already a Uint8, do nothing
+    if (data instanceof Uint8Array)
+        return data;
+    if (typeof data === "string") {
+        return fromUtf8(data);
+    }
+    if (ArrayBuffer.isView(data)) {
+        return new Uint8Array(data.buffer, data.byteOffset, data.byteLength / Uint8Array.BYTES_PER_ELEMENT);
+    }
+    return new Uint8Array(data);
+}
+exports.convertToBuffer = convertToBuffer;
+//# sourceMappingURL=convertToBuffer.js.map
+
+/***/ }),
+
+/***/ 4871:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+
+// Copyright Amazon.com Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.uint32ArrayFrom = exports.numToUint8 = exports.isEmptyData = exports.convertToBuffer = void 0;
+var convertToBuffer_1 = __nccwpck_require__(3670);
+Object.defineProperty(exports, "convertToBuffer", ({ enumerable: true, get: function () { return convertToBuffer_1.convertToBuffer; } }));
+var isEmptyData_1 = __nccwpck_require__(3978);
+Object.defineProperty(exports, "isEmptyData", ({ enumerable: true, get: function () { return isEmptyData_1.isEmptyData; } }));
+var numToUint8_1 = __nccwpck_require__(3906);
+Object.defineProperty(exports, "numToUint8", ({ enumerable: true, get: function () { return numToUint8_1.numToUint8; } }));
+var uint32ArrayFrom_1 = __nccwpck_require__(5733);
+Object.defineProperty(exports, "uint32ArrayFrom", ({ enumerable: true, get: function () { return uint32ArrayFrom_1.uint32ArrayFrom; } }));
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ 3978:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+// Copyright Amazon.com Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.isEmptyData = void 0;
+function isEmptyData(data) {
+    if (typeof data === "string") {
+        return data.length === 0;
+    }
+    return data.byteLength === 0;
+}
+exports.isEmptyData = isEmptyData;
+//# sourceMappingURL=isEmptyData.js.map
+
+/***/ }),
+
+/***/ 3906:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+// Copyright Amazon.com Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.numToUint8 = void 0;
+function numToUint8(num) {
+    return new Uint8Array([
+        (num & 0xff000000) >> 24,
+        (num & 0x00ff0000) >> 16,
+        (num & 0x0000ff00) >> 8,
+        num & 0x000000ff,
+    ]);
+}
+exports.numToUint8 = numToUint8;
+//# sourceMappingURL=numToUint8.js.map
+
+/***/ }),
+
+/***/ 5733:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+// Copyright Amazon.com Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.uint32ArrayFrom = void 0;
+// IE 11 does not support Array.from, so we do it manually
+function uint32ArrayFrom(a_lookUpTable) {
+    if (!Uint32Array.from) {
+        var return_array = new Uint32Array(a_lookUpTable.length);
+        var a_index = 0;
+        while (a_index < a_lookUpTable.length) {
+            return_array[a_index] = a_lookUpTable[a_index];
+            a_index += 1;
+        }
+        return return_array;
+    }
+    return Uint32Array.from(a_lookUpTable);
+}
+exports.uint32ArrayFrom = uint32ArrayFrom;
+//# sourceMappingURL=uint32ArrayFrom.js.map
+
+/***/ }),
+
 /***/ 2856:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -7075,6 +7312,162 @@ var request = withDefaults(import_endpoint.endpoint, {
 
 /***/ }),
 
+/***/ 780:
+/***/ ((module) => {
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// src/index.ts
+var src_exports = {};
+__export(src_exports, {
+  isArrayBuffer: () => isArrayBuffer
+});
+module.exports = __toCommonJS(src_exports);
+var isArrayBuffer = /* @__PURE__ */ __name((arg) => typeof ArrayBuffer === "function" && arg instanceof ArrayBuffer || Object.prototype.toString.call(arg) === "[object ArrayBuffer]", "isArrayBuffer");
+// Annotate the CommonJS export names for ESM import in node:
+
+0 && (0);
+
+
+
+/***/ }),
+
+/***/ 1381:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// src/index.ts
+var src_exports = {};
+__export(src_exports, {
+  fromArrayBuffer: () => fromArrayBuffer,
+  fromString: () => fromString
+});
+module.exports = __toCommonJS(src_exports);
+var import_is_array_buffer = __nccwpck_require__(780);
+var import_buffer = __nccwpck_require__(4300);
+var fromArrayBuffer = /* @__PURE__ */ __name((input, offset = 0, length = input.byteLength - offset) => {
+  if (!(0, import_is_array_buffer.isArrayBuffer)(input)) {
+    throw new TypeError(`The "input" argument must be ArrayBuffer. Received type ${typeof input} (${input})`);
+  }
+  return import_buffer.Buffer.from(input, offset, length);
+}, "fromArrayBuffer");
+var fromString = /* @__PURE__ */ __name((input, encoding) => {
+  if (typeof input !== "string") {
+    throw new TypeError(`The "input" argument must be of type string. Received type ${typeof input} (${input})`);
+  }
+  return encoding ? import_buffer.Buffer.from(input, encoding) : import_buffer.Buffer.from(input);
+}, "fromString");
+// Annotate the CommonJS export names for ESM import in node:
+
+0 && (0);
+
+
+
+/***/ }),
+
+/***/ 1895:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// src/index.ts
+var src_exports = {};
+__export(src_exports, {
+  fromUtf8: () => fromUtf8,
+  toUint8Array: () => toUint8Array,
+  toUtf8: () => toUtf8
+});
+module.exports = __toCommonJS(src_exports);
+
+// src/fromUtf8.ts
+var import_util_buffer_from = __nccwpck_require__(1381);
+var fromUtf8 = /* @__PURE__ */ __name((input) => {
+  const buf = (0, import_util_buffer_from.fromString)(input, "utf8");
+  return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength / Uint8Array.BYTES_PER_ELEMENT);
+}, "fromUtf8");
+
+// src/toUint8Array.ts
+var toUint8Array = /* @__PURE__ */ __name((data) => {
+  if (typeof data === "string") {
+    return fromUtf8(data);
+  }
+  if (ArrayBuffer.isView(data)) {
+    return new Uint8Array(data.buffer, data.byteOffset, data.byteLength / Uint8Array.BYTES_PER_ELEMENT);
+  }
+  return new Uint8Array(data);
+}, "toUint8Array");
+
+// src/toUtf8.ts
+
+var toUtf8 = /* @__PURE__ */ __name((input) => {
+  if (typeof input === "string") {
+    return input;
+  }
+  if (typeof input !== "object" || typeof input.byteOffset !== "number" || typeof input.byteLength !== "number") {
+    throw new Error("@smithy/util-utf8: toUtf8 encoder function only accepts string | Uint8Array.");
+  }
+  return (0, import_util_buffer_from.fromArrayBuffer)(input.buffer, input.byteOffset, input.byteLength).toString("utf8");
+}, "toUtf8");
+// Annotate the CommonJS export names for ESM import in node:
+
+0 && (0);
+
+
+
+/***/ }),
+
 /***/ 4812:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -8145,6 +8538,476 @@ CombinedStream.prototype._emitError = function(err) {
 
 /***/ }),
 
+/***/ 482:
+/***/ (function(module, exports, __nccwpck_require__) {
+
+;(function (root, factory, undef) {
+	if (true) {
+		// CommonJS
+		module.exports = exports = factory(__nccwpck_require__(425), __nccwpck_require__(8025), __nccwpck_require__(250), __nccwpck_require__(4727), __nccwpck_require__(714));
+	}
+	else {}
+}(this, function (CryptoJS) {
+
+	(function () {
+	    // Shortcuts
+	    var C = CryptoJS;
+	    var C_lib = C.lib;
+	    var BlockCipher = C_lib.BlockCipher;
+	    var C_algo = C.algo;
+
+	    const N = 16;
+
+	    //Origin pbox and sbox, derived from PI
+	    const ORIG_P = [
+	        0x243F6A88, 0x85A308D3, 0x13198A2E, 0x03707344,
+	        0xA4093822, 0x299F31D0, 0x082EFA98, 0xEC4E6C89,
+	        0x452821E6, 0x38D01377, 0xBE5466CF, 0x34E90C6C,
+	        0xC0AC29B7, 0xC97C50DD, 0x3F84D5B5, 0xB5470917,
+	        0x9216D5D9, 0x8979FB1B
+	    ];
+
+	    const ORIG_S = [
+	        [   0xD1310BA6, 0x98DFB5AC, 0x2FFD72DB, 0xD01ADFB7,
+	            0xB8E1AFED, 0x6A267E96, 0xBA7C9045, 0xF12C7F99,
+	            0x24A19947, 0xB3916CF7, 0x0801F2E2, 0x858EFC16,
+	            0x636920D8, 0x71574E69, 0xA458FEA3, 0xF4933D7E,
+	            0x0D95748F, 0x728EB658, 0x718BCD58, 0x82154AEE,
+	            0x7B54A41D, 0xC25A59B5, 0x9C30D539, 0x2AF26013,
+	            0xC5D1B023, 0x286085F0, 0xCA417918, 0xB8DB38EF,
+	            0x8E79DCB0, 0x603A180E, 0x6C9E0E8B, 0xB01E8A3E,
+	            0xD71577C1, 0xBD314B27, 0x78AF2FDA, 0x55605C60,
+	            0xE65525F3, 0xAA55AB94, 0x57489862, 0x63E81440,
+	            0x55CA396A, 0x2AAB10B6, 0xB4CC5C34, 0x1141E8CE,
+	            0xA15486AF, 0x7C72E993, 0xB3EE1411, 0x636FBC2A,
+	            0x2BA9C55D, 0x741831F6, 0xCE5C3E16, 0x9B87931E,
+	            0xAFD6BA33, 0x6C24CF5C, 0x7A325381, 0x28958677,
+	            0x3B8F4898, 0x6B4BB9AF, 0xC4BFE81B, 0x66282193,
+	            0x61D809CC, 0xFB21A991, 0x487CAC60, 0x5DEC8032,
+	            0xEF845D5D, 0xE98575B1, 0xDC262302, 0xEB651B88,
+	            0x23893E81, 0xD396ACC5, 0x0F6D6FF3, 0x83F44239,
+	            0x2E0B4482, 0xA4842004, 0x69C8F04A, 0x9E1F9B5E,
+	            0x21C66842, 0xF6E96C9A, 0x670C9C61, 0xABD388F0,
+	            0x6A51A0D2, 0xD8542F68, 0x960FA728, 0xAB5133A3,
+	            0x6EEF0B6C, 0x137A3BE4, 0xBA3BF050, 0x7EFB2A98,
+	            0xA1F1651D, 0x39AF0176, 0x66CA593E, 0x82430E88,
+	            0x8CEE8619, 0x456F9FB4, 0x7D84A5C3, 0x3B8B5EBE,
+	            0xE06F75D8, 0x85C12073, 0x401A449F, 0x56C16AA6,
+	            0x4ED3AA62, 0x363F7706, 0x1BFEDF72, 0x429B023D,
+	            0x37D0D724, 0xD00A1248, 0xDB0FEAD3, 0x49F1C09B,
+	            0x075372C9, 0x80991B7B, 0x25D479D8, 0xF6E8DEF7,
+	            0xE3FE501A, 0xB6794C3B, 0x976CE0BD, 0x04C006BA,
+	            0xC1A94FB6, 0x409F60C4, 0x5E5C9EC2, 0x196A2463,
+	            0x68FB6FAF, 0x3E6C53B5, 0x1339B2EB, 0x3B52EC6F,
+	            0x6DFC511F, 0x9B30952C, 0xCC814544, 0xAF5EBD09,
+	            0xBEE3D004, 0xDE334AFD, 0x660F2807, 0x192E4BB3,
+	            0xC0CBA857, 0x45C8740F, 0xD20B5F39, 0xB9D3FBDB,
+	            0x5579C0BD, 0x1A60320A, 0xD6A100C6, 0x402C7279,
+	            0x679F25FE, 0xFB1FA3CC, 0x8EA5E9F8, 0xDB3222F8,
+	            0x3C7516DF, 0xFD616B15, 0x2F501EC8, 0xAD0552AB,
+	            0x323DB5FA, 0xFD238760, 0x53317B48, 0x3E00DF82,
+	            0x9E5C57BB, 0xCA6F8CA0, 0x1A87562E, 0xDF1769DB,
+	            0xD542A8F6, 0x287EFFC3, 0xAC6732C6, 0x8C4F5573,
+	            0x695B27B0, 0xBBCA58C8, 0xE1FFA35D, 0xB8F011A0,
+	            0x10FA3D98, 0xFD2183B8, 0x4AFCB56C, 0x2DD1D35B,
+	            0x9A53E479, 0xB6F84565, 0xD28E49BC, 0x4BFB9790,
+	            0xE1DDF2DA, 0xA4CB7E33, 0x62FB1341, 0xCEE4C6E8,
+	            0xEF20CADA, 0x36774C01, 0xD07E9EFE, 0x2BF11FB4,
+	            0x95DBDA4D, 0xAE909198, 0xEAAD8E71, 0x6B93D5A0,
+	            0xD08ED1D0, 0xAFC725E0, 0x8E3C5B2F, 0x8E7594B7,
+	            0x8FF6E2FB, 0xF2122B64, 0x8888B812, 0x900DF01C,
+	            0x4FAD5EA0, 0x688FC31C, 0xD1CFF191, 0xB3A8C1AD,
+	            0x2F2F2218, 0xBE0E1777, 0xEA752DFE, 0x8B021FA1,
+	            0xE5A0CC0F, 0xB56F74E8, 0x18ACF3D6, 0xCE89E299,
+	            0xB4A84FE0, 0xFD13E0B7, 0x7CC43B81, 0xD2ADA8D9,
+	            0x165FA266, 0x80957705, 0x93CC7314, 0x211A1477,
+	            0xE6AD2065, 0x77B5FA86, 0xC75442F5, 0xFB9D35CF,
+	            0xEBCDAF0C, 0x7B3E89A0, 0xD6411BD3, 0xAE1E7E49,
+	            0x00250E2D, 0x2071B35E, 0x226800BB, 0x57B8E0AF,
+	            0x2464369B, 0xF009B91E, 0x5563911D, 0x59DFA6AA,
+	            0x78C14389, 0xD95A537F, 0x207D5BA2, 0x02E5B9C5,
+	            0x83260376, 0x6295CFA9, 0x11C81968, 0x4E734A41,
+	            0xB3472DCA, 0x7B14A94A, 0x1B510052, 0x9A532915,
+	            0xD60F573F, 0xBC9BC6E4, 0x2B60A476, 0x81E67400,
+	            0x08BA6FB5, 0x571BE91F, 0xF296EC6B, 0x2A0DD915,
+	            0xB6636521, 0xE7B9F9B6, 0xFF34052E, 0xC5855664,
+	            0x53B02D5D, 0xA99F8FA1, 0x08BA4799, 0x6E85076A   ],
+	        [   0x4B7A70E9, 0xB5B32944, 0xDB75092E, 0xC4192623,
+	            0xAD6EA6B0, 0x49A7DF7D, 0x9CEE60B8, 0x8FEDB266,
+	            0xECAA8C71, 0x699A17FF, 0x5664526C, 0xC2B19EE1,
+	            0x193602A5, 0x75094C29, 0xA0591340, 0xE4183A3E,
+	            0x3F54989A, 0x5B429D65, 0x6B8FE4D6, 0x99F73FD6,
+	            0xA1D29C07, 0xEFE830F5, 0x4D2D38E6, 0xF0255DC1,
+	            0x4CDD2086, 0x8470EB26, 0x6382E9C6, 0x021ECC5E,
+	            0x09686B3F, 0x3EBAEFC9, 0x3C971814, 0x6B6A70A1,
+	            0x687F3584, 0x52A0E286, 0xB79C5305, 0xAA500737,
+	            0x3E07841C, 0x7FDEAE5C, 0x8E7D44EC, 0x5716F2B8,
+	            0xB03ADA37, 0xF0500C0D, 0xF01C1F04, 0x0200B3FF,
+	            0xAE0CF51A, 0x3CB574B2, 0x25837A58, 0xDC0921BD,
+	            0xD19113F9, 0x7CA92FF6, 0x94324773, 0x22F54701,
+	            0x3AE5E581, 0x37C2DADC, 0xC8B57634, 0x9AF3DDA7,
+	            0xA9446146, 0x0FD0030E, 0xECC8C73E, 0xA4751E41,
+	            0xE238CD99, 0x3BEA0E2F, 0x3280BBA1, 0x183EB331,
+	            0x4E548B38, 0x4F6DB908, 0x6F420D03, 0xF60A04BF,
+	            0x2CB81290, 0x24977C79, 0x5679B072, 0xBCAF89AF,
+	            0xDE9A771F, 0xD9930810, 0xB38BAE12, 0xDCCF3F2E,
+	            0x5512721F, 0x2E6B7124, 0x501ADDE6, 0x9F84CD87,
+	            0x7A584718, 0x7408DA17, 0xBC9F9ABC, 0xE94B7D8C,
+	            0xEC7AEC3A, 0xDB851DFA, 0x63094366, 0xC464C3D2,
+	            0xEF1C1847, 0x3215D908, 0xDD433B37, 0x24C2BA16,
+	            0x12A14D43, 0x2A65C451, 0x50940002, 0x133AE4DD,
+	            0x71DFF89E, 0x10314E55, 0x81AC77D6, 0x5F11199B,
+	            0x043556F1, 0xD7A3C76B, 0x3C11183B, 0x5924A509,
+	            0xF28FE6ED, 0x97F1FBFA, 0x9EBABF2C, 0x1E153C6E,
+	            0x86E34570, 0xEAE96FB1, 0x860E5E0A, 0x5A3E2AB3,
+	            0x771FE71C, 0x4E3D06FA, 0x2965DCB9, 0x99E71D0F,
+	            0x803E89D6, 0x5266C825, 0x2E4CC978, 0x9C10B36A,
+	            0xC6150EBA, 0x94E2EA78, 0xA5FC3C53, 0x1E0A2DF4,
+	            0xF2F74EA7, 0x361D2B3D, 0x1939260F, 0x19C27960,
+	            0x5223A708, 0xF71312B6, 0xEBADFE6E, 0xEAC31F66,
+	            0xE3BC4595, 0xA67BC883, 0xB17F37D1, 0x018CFF28,
+	            0xC332DDEF, 0xBE6C5AA5, 0x65582185, 0x68AB9802,
+	            0xEECEA50F, 0xDB2F953B, 0x2AEF7DAD, 0x5B6E2F84,
+	            0x1521B628, 0x29076170, 0xECDD4775, 0x619F1510,
+	            0x13CCA830, 0xEB61BD96, 0x0334FE1E, 0xAA0363CF,
+	            0xB5735C90, 0x4C70A239, 0xD59E9E0B, 0xCBAADE14,
+	            0xEECC86BC, 0x60622CA7, 0x9CAB5CAB, 0xB2F3846E,
+	            0x648B1EAF, 0x19BDF0CA, 0xA02369B9, 0x655ABB50,
+	            0x40685A32, 0x3C2AB4B3, 0x319EE9D5, 0xC021B8F7,
+	            0x9B540B19, 0x875FA099, 0x95F7997E, 0x623D7DA8,
+	            0xF837889A, 0x97E32D77, 0x11ED935F, 0x16681281,
+	            0x0E358829, 0xC7E61FD6, 0x96DEDFA1, 0x7858BA99,
+	            0x57F584A5, 0x1B227263, 0x9B83C3FF, 0x1AC24696,
+	            0xCDB30AEB, 0x532E3054, 0x8FD948E4, 0x6DBC3128,
+	            0x58EBF2EF, 0x34C6FFEA, 0xFE28ED61, 0xEE7C3C73,
+	            0x5D4A14D9, 0xE864B7E3, 0x42105D14, 0x203E13E0,
+	            0x45EEE2B6, 0xA3AAABEA, 0xDB6C4F15, 0xFACB4FD0,
+	            0xC742F442, 0xEF6ABBB5, 0x654F3B1D, 0x41CD2105,
+	            0xD81E799E, 0x86854DC7, 0xE44B476A, 0x3D816250,
+	            0xCF62A1F2, 0x5B8D2646, 0xFC8883A0, 0xC1C7B6A3,
+	            0x7F1524C3, 0x69CB7492, 0x47848A0B, 0x5692B285,
+	            0x095BBF00, 0xAD19489D, 0x1462B174, 0x23820E00,
+	            0x58428D2A, 0x0C55F5EA, 0x1DADF43E, 0x233F7061,
+	            0x3372F092, 0x8D937E41, 0xD65FECF1, 0x6C223BDB,
+	            0x7CDE3759, 0xCBEE7460, 0x4085F2A7, 0xCE77326E,
+	            0xA6078084, 0x19F8509E, 0xE8EFD855, 0x61D99735,
+	            0xA969A7AA, 0xC50C06C2, 0x5A04ABFC, 0x800BCADC,
+	            0x9E447A2E, 0xC3453484, 0xFDD56705, 0x0E1E9EC9,
+	            0xDB73DBD3, 0x105588CD, 0x675FDA79, 0xE3674340,
+	            0xC5C43465, 0x713E38D8, 0x3D28F89E, 0xF16DFF20,
+	            0x153E21E7, 0x8FB03D4A, 0xE6E39F2B, 0xDB83ADF7   ],
+	        [   0xE93D5A68, 0x948140F7, 0xF64C261C, 0x94692934,
+	            0x411520F7, 0x7602D4F7, 0xBCF46B2E, 0xD4A20068,
+	            0xD4082471, 0x3320F46A, 0x43B7D4B7, 0x500061AF,
+	            0x1E39F62E, 0x97244546, 0x14214F74, 0xBF8B8840,
+	            0x4D95FC1D, 0x96B591AF, 0x70F4DDD3, 0x66A02F45,
+	            0xBFBC09EC, 0x03BD9785, 0x7FAC6DD0, 0x31CB8504,
+	            0x96EB27B3, 0x55FD3941, 0xDA2547E6, 0xABCA0A9A,
+	            0x28507825, 0x530429F4, 0x0A2C86DA, 0xE9B66DFB,
+	            0x68DC1462, 0xD7486900, 0x680EC0A4, 0x27A18DEE,
+	            0x4F3FFEA2, 0xE887AD8C, 0xB58CE006, 0x7AF4D6B6,
+	            0xAACE1E7C, 0xD3375FEC, 0xCE78A399, 0x406B2A42,
+	            0x20FE9E35, 0xD9F385B9, 0xEE39D7AB, 0x3B124E8B,
+	            0x1DC9FAF7, 0x4B6D1856, 0x26A36631, 0xEAE397B2,
+	            0x3A6EFA74, 0xDD5B4332, 0x6841E7F7, 0xCA7820FB,
+	            0xFB0AF54E, 0xD8FEB397, 0x454056AC, 0xBA489527,
+	            0x55533A3A, 0x20838D87, 0xFE6BA9B7, 0xD096954B,
+	            0x55A867BC, 0xA1159A58, 0xCCA92963, 0x99E1DB33,
+	            0xA62A4A56, 0x3F3125F9, 0x5EF47E1C, 0x9029317C,
+	            0xFDF8E802, 0x04272F70, 0x80BB155C, 0x05282CE3,
+	            0x95C11548, 0xE4C66D22, 0x48C1133F, 0xC70F86DC,
+	            0x07F9C9EE, 0x41041F0F, 0x404779A4, 0x5D886E17,
+	            0x325F51EB, 0xD59BC0D1, 0xF2BCC18F, 0x41113564,
+	            0x257B7834, 0x602A9C60, 0xDFF8E8A3, 0x1F636C1B,
+	            0x0E12B4C2, 0x02E1329E, 0xAF664FD1, 0xCAD18115,
+	            0x6B2395E0, 0x333E92E1, 0x3B240B62, 0xEEBEB922,
+	            0x85B2A20E, 0xE6BA0D99, 0xDE720C8C, 0x2DA2F728,
+	            0xD0127845, 0x95B794FD, 0x647D0862, 0xE7CCF5F0,
+	            0x5449A36F, 0x877D48FA, 0xC39DFD27, 0xF33E8D1E,
+	            0x0A476341, 0x992EFF74, 0x3A6F6EAB, 0xF4F8FD37,
+	            0xA812DC60, 0xA1EBDDF8, 0x991BE14C, 0xDB6E6B0D,
+	            0xC67B5510, 0x6D672C37, 0x2765D43B, 0xDCD0E804,
+	            0xF1290DC7, 0xCC00FFA3, 0xB5390F92, 0x690FED0B,
+	            0x667B9FFB, 0xCEDB7D9C, 0xA091CF0B, 0xD9155EA3,
+	            0xBB132F88, 0x515BAD24, 0x7B9479BF, 0x763BD6EB,
+	            0x37392EB3, 0xCC115979, 0x8026E297, 0xF42E312D,
+	            0x6842ADA7, 0xC66A2B3B, 0x12754CCC, 0x782EF11C,
+	            0x6A124237, 0xB79251E7, 0x06A1BBE6, 0x4BFB6350,
+	            0x1A6B1018, 0x11CAEDFA, 0x3D25BDD8, 0xE2E1C3C9,
+	            0x44421659, 0x0A121386, 0xD90CEC6E, 0xD5ABEA2A,
+	            0x64AF674E, 0xDA86A85F, 0xBEBFE988, 0x64E4C3FE,
+	            0x9DBC8057, 0xF0F7C086, 0x60787BF8, 0x6003604D,
+	            0xD1FD8346, 0xF6381FB0, 0x7745AE04, 0xD736FCCC,
+	            0x83426B33, 0xF01EAB71, 0xB0804187, 0x3C005E5F,
+	            0x77A057BE, 0xBDE8AE24, 0x55464299, 0xBF582E61,
+	            0x4E58F48F, 0xF2DDFDA2, 0xF474EF38, 0x8789BDC2,
+	            0x5366F9C3, 0xC8B38E74, 0xB475F255, 0x46FCD9B9,
+	            0x7AEB2661, 0x8B1DDF84, 0x846A0E79, 0x915F95E2,
+	            0x466E598E, 0x20B45770, 0x8CD55591, 0xC902DE4C,
+	            0xB90BACE1, 0xBB8205D0, 0x11A86248, 0x7574A99E,
+	            0xB77F19B6, 0xE0A9DC09, 0x662D09A1, 0xC4324633,
+	            0xE85A1F02, 0x09F0BE8C, 0x4A99A025, 0x1D6EFE10,
+	            0x1AB93D1D, 0x0BA5A4DF, 0xA186F20F, 0x2868F169,
+	            0xDCB7DA83, 0x573906FE, 0xA1E2CE9B, 0x4FCD7F52,
+	            0x50115E01, 0xA70683FA, 0xA002B5C4, 0x0DE6D027,
+	            0x9AF88C27, 0x773F8641, 0xC3604C06, 0x61A806B5,
+	            0xF0177A28, 0xC0F586E0, 0x006058AA, 0x30DC7D62,
+	            0x11E69ED7, 0x2338EA63, 0x53C2DD94, 0xC2C21634,
+	            0xBBCBEE56, 0x90BCB6DE, 0xEBFC7DA1, 0xCE591D76,
+	            0x6F05E409, 0x4B7C0188, 0x39720A3D, 0x7C927C24,
+	            0x86E3725F, 0x724D9DB9, 0x1AC15BB4, 0xD39EB8FC,
+	            0xED545578, 0x08FCA5B5, 0xD83D7CD3, 0x4DAD0FC4,
+	            0x1E50EF5E, 0xB161E6F8, 0xA28514D9, 0x6C51133C,
+	            0x6FD5C7E7, 0x56E14EC4, 0x362ABFCE, 0xDDC6C837,
+	            0xD79A3234, 0x92638212, 0x670EFA8E, 0x406000E0  ],
+	        [   0x3A39CE37, 0xD3FAF5CF, 0xABC27737, 0x5AC52D1B,
+	            0x5CB0679E, 0x4FA33742, 0xD3822740, 0x99BC9BBE,
+	            0xD5118E9D, 0xBF0F7315, 0xD62D1C7E, 0xC700C47B,
+	            0xB78C1B6B, 0x21A19045, 0xB26EB1BE, 0x6A366EB4,
+	            0x5748AB2F, 0xBC946E79, 0xC6A376D2, 0x6549C2C8,
+	            0x530FF8EE, 0x468DDE7D, 0xD5730A1D, 0x4CD04DC6,
+	            0x2939BBDB, 0xA9BA4650, 0xAC9526E8, 0xBE5EE304,
+	            0xA1FAD5F0, 0x6A2D519A, 0x63EF8CE2, 0x9A86EE22,
+	            0xC089C2B8, 0x43242EF6, 0xA51E03AA, 0x9CF2D0A4,
+	            0x83C061BA, 0x9BE96A4D, 0x8FE51550, 0xBA645BD6,
+	            0x2826A2F9, 0xA73A3AE1, 0x4BA99586, 0xEF5562E9,
+	            0xC72FEFD3, 0xF752F7DA, 0x3F046F69, 0x77FA0A59,
+	            0x80E4A915, 0x87B08601, 0x9B09E6AD, 0x3B3EE593,
+	            0xE990FD5A, 0x9E34D797, 0x2CF0B7D9, 0x022B8B51,
+	            0x96D5AC3A, 0x017DA67D, 0xD1CF3ED6, 0x7C7D2D28,
+	            0x1F9F25CF, 0xADF2B89B, 0x5AD6B472, 0x5A88F54C,
+	            0xE029AC71, 0xE019A5E6, 0x47B0ACFD, 0xED93FA9B,
+	            0xE8D3C48D, 0x283B57CC, 0xF8D56629, 0x79132E28,
+	            0x785F0191, 0xED756055, 0xF7960E44, 0xE3D35E8C,
+	            0x15056DD4, 0x88F46DBA, 0x03A16125, 0x0564F0BD,
+	            0xC3EB9E15, 0x3C9057A2, 0x97271AEC, 0xA93A072A,
+	            0x1B3F6D9B, 0x1E6321F5, 0xF59C66FB, 0x26DCF319,
+	            0x7533D928, 0xB155FDF5, 0x03563482, 0x8ABA3CBB,
+	            0x28517711, 0xC20AD9F8, 0xABCC5167, 0xCCAD925F,
+	            0x4DE81751, 0x3830DC8E, 0x379D5862, 0x9320F991,
+	            0xEA7A90C2, 0xFB3E7BCE, 0x5121CE64, 0x774FBE32,
+	            0xA8B6E37E, 0xC3293D46, 0x48DE5369, 0x6413E680,
+	            0xA2AE0810, 0xDD6DB224, 0x69852DFD, 0x09072166,
+	            0xB39A460A, 0x6445C0DD, 0x586CDECF, 0x1C20C8AE,
+	            0x5BBEF7DD, 0x1B588D40, 0xCCD2017F, 0x6BB4E3BB,
+	            0xDDA26A7E, 0x3A59FF45, 0x3E350A44, 0xBCB4CDD5,
+	            0x72EACEA8, 0xFA6484BB, 0x8D6612AE, 0xBF3C6F47,
+	            0xD29BE463, 0x542F5D9E, 0xAEC2771B, 0xF64E6370,
+	            0x740E0D8D, 0xE75B1357, 0xF8721671, 0xAF537D5D,
+	            0x4040CB08, 0x4EB4E2CC, 0x34D2466A, 0x0115AF84,
+	            0xE1B00428, 0x95983A1D, 0x06B89FB4, 0xCE6EA048,
+	            0x6F3F3B82, 0x3520AB82, 0x011A1D4B, 0x277227F8,
+	            0x611560B1, 0xE7933FDC, 0xBB3A792B, 0x344525BD,
+	            0xA08839E1, 0x51CE794B, 0x2F32C9B7, 0xA01FBAC9,
+	            0xE01CC87E, 0xBCC7D1F6, 0xCF0111C3, 0xA1E8AAC7,
+	            0x1A908749, 0xD44FBD9A, 0xD0DADECB, 0xD50ADA38,
+	            0x0339C32A, 0xC6913667, 0x8DF9317C, 0xE0B12B4F,
+	            0xF79E59B7, 0x43F5BB3A, 0xF2D519FF, 0x27D9459C,
+	            0xBF97222C, 0x15E6FC2A, 0x0F91FC71, 0x9B941525,
+	            0xFAE59361, 0xCEB69CEB, 0xC2A86459, 0x12BAA8D1,
+	            0xB6C1075E, 0xE3056A0C, 0x10D25065, 0xCB03A442,
+	            0xE0EC6E0E, 0x1698DB3B, 0x4C98A0BE, 0x3278E964,
+	            0x9F1F9532, 0xE0D392DF, 0xD3A0342B, 0x8971F21E,
+	            0x1B0A7441, 0x4BA3348C, 0xC5BE7120, 0xC37632D8,
+	            0xDF359F8D, 0x9B992F2E, 0xE60B6F47, 0x0FE3F11D,
+	            0xE54CDA54, 0x1EDAD891, 0xCE6279CF, 0xCD3E7E6F,
+	            0x1618B166, 0xFD2C1D05, 0x848FD2C5, 0xF6FB2299,
+	            0xF523F357, 0xA6327623, 0x93A83531, 0x56CCCD02,
+	            0xACF08162, 0x5A75EBB5, 0x6E163697, 0x88D273CC,
+	            0xDE966292, 0x81B949D0, 0x4C50901B, 0x71C65614,
+	            0xE6C6C7BD, 0x327A140A, 0x45E1D006, 0xC3F27B9A,
+	            0xC9AA53FD, 0x62A80F00, 0xBB25BFE2, 0x35BDD2F6,
+	            0x71126905, 0xB2040222, 0xB6CBCF7C, 0xCD769C2B,
+	            0x53113EC0, 0x1640E3D3, 0x38ABBD60, 0x2547ADF0,
+	            0xBA38209C, 0xF746CE76, 0x77AFA1C5, 0x20756060,
+	            0x85CBFE4E, 0x8AE88DD8, 0x7AAAF9B0, 0x4CF9AA7E,
+	            0x1948C25C, 0x02FB8A8C, 0x01C36AE4, 0xD6EBE1F9,
+	            0x90D4F869, 0xA65CDEA0, 0x3F09252D, 0xC208E69F,
+	            0xB74E6132, 0xCE77E25B, 0x578FDFE3, 0x3AC372E6  ]
+	    ];
+
+	    var BLOWFISH_CTX = {
+	        pbox: [],
+	        sbox: []
+	    }
+
+	    function F(ctx, x){
+	        let a = (x >> 24) & 0xFF;
+	        let b = (x >> 16) & 0xFF;
+	        let c = (x >> 8) & 0xFF;
+	        let d = x & 0xFF;
+
+	        let y = ctx.sbox[0][a] + ctx.sbox[1][b];
+	        y = y ^ ctx.sbox[2][c];
+	        y = y + ctx.sbox[3][d];
+
+	        return y;
+	    }
+
+	    function BlowFish_Encrypt(ctx, left, right){
+	        let Xl = left;
+	        let Xr = right;
+	        let temp;
+
+	        for(let i = 0; i < N; ++i){
+	            Xl = Xl ^ ctx.pbox[i];
+	            Xr = F(ctx, Xl) ^ Xr;
+
+	            temp = Xl;
+	            Xl = Xr;
+	            Xr = temp;
+	        }
+
+	        temp = Xl;
+	        Xl = Xr;
+	        Xr = temp;
+
+	        Xr = Xr ^ ctx.pbox[N];
+	        Xl = Xl ^ ctx.pbox[N + 1];
+
+	        return {left: Xl, right: Xr};
+	    }
+
+	    function BlowFish_Decrypt(ctx, left, right){
+	        let Xl = left;
+	        let Xr = right;
+	        let temp;
+
+	        for(let i = N + 1; i > 1; --i){
+	            Xl = Xl ^ ctx.pbox[i];
+	            Xr = F(ctx, Xl) ^ Xr;
+
+	            temp = Xl;
+	            Xl = Xr;
+	            Xr = temp;
+	        }
+
+	        temp = Xl;
+	        Xl = Xr;
+	        Xr = temp;
+
+	        Xr = Xr ^ ctx.pbox[1];
+	        Xl = Xl ^ ctx.pbox[0];
+
+	        return {left: Xl, right: Xr};
+	    }
+
+	    /**
+	     * Initialization ctx's pbox and sbox.
+	     *
+	     * @param {Object} ctx The object has pbox and sbox.
+	     * @param {Array} key An array of 32-bit words.
+	     * @param {int} keysize The length of the key.
+	     *
+	     * @example
+	     *
+	     *     BlowFishInit(BLOWFISH_CTX, key, 128/32);
+	     */
+	    function BlowFishInit(ctx, key, keysize)
+	    {
+	        for(let Row = 0; Row < 4; Row++)
+	        {
+	            ctx.sbox[Row] = [];
+	            for(let Col = 0; Col < 256; Col++)
+	            {
+	                ctx.sbox[Row][Col] = ORIG_S[Row][Col];
+	            }
+	        }
+
+	        let keyIndex = 0;
+	        for(let index = 0; index < N + 2; index++)
+	        {
+	            ctx.pbox[index] = ORIG_P[index] ^ key[keyIndex];
+	            keyIndex++;
+	            if(keyIndex >= keysize)
+	            {
+	                keyIndex = 0;
+	            }
+	        }
+
+	        let Data1 = 0;
+	        let Data2 = 0;
+	        let res = 0;
+	        for(let i = 0; i < N + 2; i += 2)
+	        {
+	            res = BlowFish_Encrypt(ctx, Data1, Data2);
+	            Data1 = res.left;
+	            Data2 = res.right;
+	            ctx.pbox[i] = Data1;
+	            ctx.pbox[i + 1] = Data2;
+	        }
+
+	        for(let i = 0; i < 4; i++)
+	        {
+	            for(let j = 0; j < 256; j += 2)
+	            {
+	                res = BlowFish_Encrypt(ctx, Data1, Data2);
+	                Data1 = res.left;
+	                Data2 = res.right;
+	                ctx.sbox[i][j] = Data1;
+	                ctx.sbox[i][j + 1] = Data2;
+	            }
+	        }
+
+	        return true;
+	    }
+
+	    /**
+	     * Blowfish block cipher algorithm.
+	     */
+	    var Blowfish = C_algo.Blowfish = BlockCipher.extend({
+	        _doReset: function () {
+	            // Skip reset of nRounds has been set before and key did not change
+	            if (this._keyPriorReset === this._key) {
+	                return;
+	            }
+
+	            // Shortcuts
+	            var key = this._keyPriorReset = this._key;
+	            var keyWords = key.words;
+	            var keySize = key.sigBytes / 4;
+
+	            //Initialization pbox and sbox
+	            BlowFishInit(BLOWFISH_CTX, keyWords, keySize);
+	        },
+
+	        encryptBlock: function (M, offset) {
+	            var res = BlowFish_Encrypt(BLOWFISH_CTX, M[offset], M[offset + 1]);
+	            M[offset] = res.left;
+	            M[offset + 1] = res.right;
+	        },
+
+	        decryptBlock: function (M, offset) {
+	            var res = BlowFish_Decrypt(BLOWFISH_CTX, M[offset], M[offset + 1]);
+	            M[offset] = res.left;
+	            M[offset + 1] = res.right;
+	        },
+
+	        blockSize: 64/32,
+
+	        keySize: 128/32,
+
+	        ivSize: 64/32
+	    });
+
+	    /**
+	     * Shortcut functions to the cipher's object interface.
+	     *
+	     * @example
+	     *
+	     *     var ciphertext = CryptoJS.Blowfish.encrypt(message, key, cfg);
+	     *     var plaintext  = CryptoJS.Blowfish.decrypt(ciphertext, key, cfg);
+	     */
+	    C.Blowfish = BlockCipher._createHelper(Blowfish);
+	}());
+
+
+	return CryptoJS.Blowfish;
+
+}));
+
+/***/ }),
+
 /***/ 714:
 /***/ (function(module, exports, __nccwpck_require__) {
 
@@ -8923,14 +9786,19 @@ CombinedStream.prototype._emitError = function(err) {
 	         *     var derivedParams = CryptoJS.kdf.OpenSSL.execute('Password', 256/32, 128/32);
 	         *     var derivedParams = CryptoJS.kdf.OpenSSL.execute('Password', 256/32, 128/32, 'saltsalt');
 	         */
-	        execute: function (password, keySize, ivSize, salt) {
+	        execute: function (password, keySize, ivSize, salt, hasher) {
 	            // Generate random salt
 	            if (!salt) {
 	                salt = WordArray.random(64/8);
 	            }
 
 	            // Derive key and IV
-	            var key = EvpKDF.create({ keySize: keySize + ivSize }).compute(password, salt);
+	            if (!hasher) {
+	                var key = EvpKDF.create({ keySize: keySize + ivSize }).compute(password, salt);
+	            } else {
+	                var key = EvpKDF.create({ keySize: keySize + ivSize, hasher: hasher }).compute(password, salt);
+	            }
+
 
 	            // Separate key and IV
 	            var iv = WordArray.create(key.words.slice(keySize), ivSize * 4);
@@ -8977,7 +9845,7 @@ CombinedStream.prototype._emitError = function(err) {
 	            cfg = this.cfg.extend(cfg);
 
 	            // Derive key and other params
-	            var derivedParams = cfg.kdf.execute(password, cipher.keySize, cipher.ivSize);
+	            var derivedParams = cfg.kdf.execute(password, cipher.keySize, cipher.ivSize, cfg.salt, cfg.hasher);
 
 	            // Add IV to config
 	            cfg.iv = derivedParams.iv;
@@ -9016,7 +9884,7 @@ CombinedStream.prototype._emitError = function(err) {
 	            ciphertext = this._parse(ciphertext, cfg.format);
 
 	            // Derive key and other params
-	            var derivedParams = cfg.kdf.execute(password, cipher.keySize, cipher.ivSize, ciphertext.salt);
+	            var derivedParams = cfg.kdf.execute(password, cipher.keySize, cipher.ivSize, ciphertext.salt, cfg.hasher);
 
 	            // Add IV to config
 	            cfg.iv = derivedParams.iv;
@@ -10012,7 +10880,10 @@ CombinedStream.prototype._emitError = function(err) {
 	         *
 	         *     var base64String = CryptoJS.enc.Base64url.stringify(wordArray);
 	         */
-	        stringify: function (wordArray, urlSafe=true) {
+	        stringify: function (wordArray, urlSafe) {
+	            if (urlSafe === undefined) {
+	                urlSafe = true
+	            }
 	            // Shortcuts
 	            var words = wordArray.words;
 	            var sigBytes = wordArray.sigBytes;
@@ -10061,7 +10932,11 @@ CombinedStream.prototype._emitError = function(err) {
 	         *
 	         *     var wordArray = CryptoJS.enc.Base64url.parse(base64String);
 	         */
-	        parse: function (base64Str, urlSafe=true) {
+	        parse: function (base64Str, urlSafe) {
+	            if (urlSafe === undefined) {
+	                urlSafe = true
+	            }
+
 	            // Shortcuts
 	            var base64StrLength = base64Str.length;
 	            var map = urlSafe ? this._safe_map : this._map;
@@ -10107,6 +10982,7 @@ CombinedStream.prototype._emitError = function(err) {
 	        return WordArray.create(words, nBytes);
 	    }
 	}());
+
 
 	return CryptoJS.enc.Base64url;
 
@@ -10608,7 +11484,7 @@ CombinedStream.prototype._emitError = function(err) {
 ;(function (root, factory, undef) {
 	if (true) {
 		// CommonJS
-		module.exports = exports = factory(__nccwpck_require__(425), __nccwpck_require__(5474), __nccwpck_require__(3281), __nccwpck_require__(6974), __nccwpck_require__(8025), __nccwpck_require__(9349), __nccwpck_require__(250), __nccwpck_require__(7156), __nccwpck_require__(3941), __nccwpck_require__(1081), __nccwpck_require__(2034), __nccwpck_require__(4861), __nccwpck_require__(7800), __nccwpck_require__(2513), __nccwpck_require__(1192), __nccwpck_require__(1476), __nccwpck_require__(4727), __nccwpck_require__(714), __nccwpck_require__(8180), __nccwpck_require__(9762), __nccwpck_require__(595), __nccwpck_require__(2462), __nccwpck_require__(5643), __nccwpck_require__(2295), __nccwpck_require__(5149), __nccwpck_require__(9573), __nccwpck_require__(8727), __nccwpck_require__(9610), __nccwpck_require__(9204), __nccwpck_require__(4819), __nccwpck_require__(3644), __nccwpck_require__(4353), __nccwpck_require__(2104), __nccwpck_require__(6424));
+		module.exports = exports = factory(__nccwpck_require__(425), __nccwpck_require__(5474), __nccwpck_require__(3281), __nccwpck_require__(6974), __nccwpck_require__(8025), __nccwpck_require__(9349), __nccwpck_require__(250), __nccwpck_require__(7156), __nccwpck_require__(3941), __nccwpck_require__(1081), __nccwpck_require__(2034), __nccwpck_require__(4861), __nccwpck_require__(7800), __nccwpck_require__(2513), __nccwpck_require__(1192), __nccwpck_require__(1476), __nccwpck_require__(4727), __nccwpck_require__(714), __nccwpck_require__(8180), __nccwpck_require__(9762), __nccwpck_require__(595), __nccwpck_require__(2462), __nccwpck_require__(5643), __nccwpck_require__(2295), __nccwpck_require__(5149), __nccwpck_require__(9573), __nccwpck_require__(8727), __nccwpck_require__(9610), __nccwpck_require__(9204), __nccwpck_require__(4819), __nccwpck_require__(3644), __nccwpck_require__(4353), __nccwpck_require__(2104), __nccwpck_require__(6424), __nccwpck_require__(482));
 	}
 	else {}
 }(this, function (CryptoJS) {
@@ -10767,7 +11643,7 @@ CombinedStream.prototype._emitError = function(err) {
 	            var M_offset_14 = M[offset + 14];
 	            var M_offset_15 = M[offset + 15];
 
-	            // Working varialbes
+	            // Working variables
 	            var a = H[0];
 	            var b = H[1];
 	            var c = H[2];
@@ -11515,7 +12391,7 @@ CombinedStream.prototype._emitError = function(err) {
 ;(function (root, factory, undef) {
 	if (true) {
 		// CommonJS
-		module.exports = exports = factory(__nccwpck_require__(425), __nccwpck_require__(7156), __nccwpck_require__(1192));
+		module.exports = exports = factory(__nccwpck_require__(425), __nccwpck_require__(3941), __nccwpck_require__(1192));
 	}
 	else {}
 }(this, function (CryptoJS) {
@@ -11527,7 +12403,7 @@ CombinedStream.prototype._emitError = function(err) {
 	    var Base = C_lib.Base;
 	    var WordArray = C_lib.WordArray;
 	    var C_algo = C.algo;
-	    var SHA1 = C_algo.SHA1;
+	    var SHA256 = C_algo.SHA256;
 	    var HMAC = C_algo.HMAC;
 
 	    /**
@@ -11538,13 +12414,13 @@ CombinedStream.prototype._emitError = function(err) {
 	         * Configuration options.
 	         *
 	         * @property {number} keySize The key size in words to generate. Default: 4 (128 bits)
-	         * @property {Hasher} hasher The hasher to use. Default: SHA1
-	         * @property {number} iterations The number of iterations to perform. Default: 1
+	         * @property {Hasher} hasher The hasher to use. Default: SHA256
+	         * @property {number} iterations The number of iterations to perform. Default: 250000
 	         */
 	        cfg: Base.extend({
 	            keySize: 128/32,
-	            hasher: SHA1,
-	            iterations: 1
+	            hasher: SHA256,
+	            iterations: 250000
 	        }),
 
 	        /**
@@ -20502,6 +21378,434 @@ module.exports = (options = {}, connect = tls.connect) => new Promise((resolve, 
 			reject(error);
 		}
 	})();
+});
+
+
+/***/ }),
+
+/***/ 4351:
+/***/ ((module) => {
+
+/******************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+/* global global, define, Symbol, Reflect, Promise, SuppressedError */
+var __extends;
+var __assign;
+var __rest;
+var __decorate;
+var __param;
+var __esDecorate;
+var __runInitializers;
+var __propKey;
+var __setFunctionName;
+var __metadata;
+var __awaiter;
+var __generator;
+var __exportStar;
+var __values;
+var __read;
+var __spread;
+var __spreadArrays;
+var __spreadArray;
+var __await;
+var __asyncGenerator;
+var __asyncDelegator;
+var __asyncValues;
+var __makeTemplateObject;
+var __importStar;
+var __importDefault;
+var __classPrivateFieldGet;
+var __classPrivateFieldSet;
+var __classPrivateFieldIn;
+var __createBinding;
+var __addDisposableResource;
+var __disposeResources;
+(function (factory) {
+    var root = typeof global === "object" ? global : typeof self === "object" ? self : typeof this === "object" ? this : {};
+    if (typeof define === "function" && define.amd) {
+        define("tslib", ["exports"], function (exports) { factory(createExporter(root, createExporter(exports))); });
+    }
+    else if ( true && typeof module.exports === "object") {
+        factory(createExporter(root, createExporter(module.exports)));
+    }
+    else {
+        factory(createExporter(root));
+    }
+    function createExporter(exports, previous) {
+        if (exports !== root) {
+            if (typeof Object.create === "function") {
+                Object.defineProperty(exports, "__esModule", { value: true });
+            }
+            else {
+                exports.__esModule = true;
+            }
+        }
+        return function (id, v) { return exports[id] = previous ? previous(id, v) : v; };
+    }
+})
+(function (exporter) {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+
+    __extends = function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+
+    __assign = Object.assign || function (t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+        }
+        return t;
+    };
+
+    __rest = function (s, e) {
+        var t = {};
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+            t[p] = s[p];
+        if (s != null && typeof Object.getOwnPropertySymbols === "function")
+            for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+                if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                    t[p[i]] = s[p[i]];
+            }
+        return t;
+    };
+
+    __decorate = function (decorators, target, key, desc) {
+        var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+        return c > 3 && r && Object.defineProperty(target, key, r), r;
+    };
+
+    __param = function (paramIndex, decorator) {
+        return function (target, key) { decorator(target, key, paramIndex); }
+    };
+
+    __esDecorate = function (ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
+        function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
+        var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
+        var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
+        var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
+        var _, done = false;
+        for (var i = decorators.length - 1; i >= 0; i--) {
+            var context = {};
+            for (var p in contextIn) context[p] = p === "access" ? {} : contextIn[p];
+            for (var p in contextIn.access) context.access[p] = contextIn.access[p];
+            context.addInitializer = function (f) { if (done) throw new TypeError("Cannot add initializers after decoration has completed"); extraInitializers.push(accept(f || null)); };
+            var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context);
+            if (kind === "accessor") {
+                if (result === void 0) continue;
+                if (result === null || typeof result !== "object") throw new TypeError("Object expected");
+                if (_ = accept(result.get)) descriptor.get = _;
+                if (_ = accept(result.set)) descriptor.set = _;
+                if (_ = accept(result.init)) initializers.unshift(_);
+            }
+            else if (_ = accept(result)) {
+                if (kind === "field") initializers.unshift(_);
+                else descriptor[key] = _;
+            }
+        }
+        if (target) Object.defineProperty(target, contextIn.name, descriptor);
+        done = true;
+    };
+
+    __runInitializers = function (thisArg, initializers, value) {
+        var useValue = arguments.length > 2;
+        for (var i = 0; i < initializers.length; i++) {
+            value = useValue ? initializers[i].call(thisArg, value) : initializers[i].call(thisArg);
+        }
+        return useValue ? value : void 0;
+    };
+
+    __propKey = function (x) {
+        return typeof x === "symbol" ? x : "".concat(x);
+    };
+
+    __setFunctionName = function (f, name, prefix) {
+        if (typeof name === "symbol") name = name.description ? "[".concat(name.description, "]") : "";
+        return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
+    };
+
+    __metadata = function (metadataKey, metadataValue) {
+        if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(metadataKey, metadataValue);
+    };
+
+    __awaiter = function (thisArg, _arguments, P, generator) {
+        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+        return new (P || (P = Promise))(function (resolve, reject) {
+            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+            step((generator = generator.apply(thisArg, _arguments || [])).next());
+        });
+    };
+
+    __generator = function (thisArg, body) {
+        var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+        return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+        function verb(n) { return function (v) { return step([n, v]); }; }
+        function step(op) {
+            if (f) throw new TypeError("Generator is already executing.");
+            while (g && (g = 0, op[0] && (_ = 0)), _) try {
+                if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+                if (y = 0, t) op = [op[0] & 2, t.value];
+                switch (op[0]) {
+                    case 0: case 1: t = op; break;
+                    case 4: _.label++; return { value: op[1], done: false };
+                    case 5: _.label++; y = op[1]; op = [0]; continue;
+                    case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                    default:
+                        if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                        if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                        if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                        if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                        if (t[2]) _.ops.pop();
+                        _.trys.pop(); continue;
+                }
+                op = body.call(thisArg, _);
+            } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+            if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+        }
+    };
+
+    __exportStar = function(m, o) {
+        for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(o, p)) __createBinding(o, m, p);
+    };
+
+    __createBinding = Object.create ? (function(o, m, k, k2) {
+        if (k2 === undefined) k2 = k;
+        var desc = Object.getOwnPropertyDescriptor(m, k);
+        if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+            desc = { enumerable: true, get: function() { return m[k]; } };
+        }
+        Object.defineProperty(o, k2, desc);
+    }) : (function(o, m, k, k2) {
+        if (k2 === undefined) k2 = k;
+        o[k2] = m[k];
+    });
+
+    __values = function (o) {
+        var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+        if (m) return m.call(o);
+        if (o && typeof o.length === "number") return {
+            next: function () {
+                if (o && i >= o.length) o = void 0;
+                return { value: o && o[i++], done: !o };
+            }
+        };
+        throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+    };
+
+    __read = function (o, n) {
+        var m = typeof Symbol === "function" && o[Symbol.iterator];
+        if (!m) return o;
+        var i = m.call(o), r, ar = [], e;
+        try {
+            while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+        }
+        catch (error) { e = { error: error }; }
+        finally {
+            try {
+                if (r && !r.done && (m = i["return"])) m.call(i);
+            }
+            finally { if (e) throw e.error; }
+        }
+        return ar;
+    };
+
+    /** @deprecated */
+    __spread = function () {
+        for (var ar = [], i = 0; i < arguments.length; i++)
+            ar = ar.concat(__read(arguments[i]));
+        return ar;
+    };
+
+    /** @deprecated */
+    __spreadArrays = function () {
+        for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+        for (var r = Array(s), k = 0, i = 0; i < il; i++)
+            for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+                r[k] = a[j];
+        return r;
+    };
+
+    __spreadArray = function (to, from, pack) {
+        if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+            if (ar || !(i in from)) {
+                if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+                ar[i] = from[i];
+            }
+        }
+        return to.concat(ar || Array.prototype.slice.call(from));
+    };
+
+    __await = function (v) {
+        return this instanceof __await ? (this.v = v, this) : new __await(v);
+    };
+
+    __asyncGenerator = function (thisArg, _arguments, generator) {
+        if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+        var g = generator.apply(thisArg, _arguments || []), i, q = [];
+        return i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i;
+        function verb(n) { if (g[n]) i[n] = function (v) { return new Promise(function (a, b) { q.push([n, v, a, b]) > 1 || resume(n, v); }); }; }
+        function resume(n, v) { try { step(g[n](v)); } catch (e) { settle(q[0][3], e); } }
+        function step(r) { r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r);  }
+        function fulfill(value) { resume("next", value); }
+        function reject(value) { resume("throw", value); }
+        function settle(f, v) { if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]); }
+    };
+
+    __asyncDelegator = function (o) {
+        var i, p;
+        return i = {}, verb("next"), verb("throw", function (e) { throw e; }), verb("return"), i[Symbol.iterator] = function () { return this; }, i;
+        function verb(n, f) { i[n] = o[n] ? function (v) { return (p = !p) ? { value: __await(o[n](v)), done: false } : f ? f(v) : v; } : f; }
+    };
+
+    __asyncValues = function (o) {
+        if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+        var m = o[Symbol.asyncIterator], i;
+        return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+        function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+        function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+    };
+
+    __makeTemplateObject = function (cooked, raw) {
+        if (Object.defineProperty) { Object.defineProperty(cooked, "raw", { value: raw }); } else { cooked.raw = raw; }
+        return cooked;
+    };
+
+    var __setModuleDefault = Object.create ? (function(o, v) {
+        Object.defineProperty(o, "default", { enumerable: true, value: v });
+    }) : function(o, v) {
+        o["default"] = v;
+    };
+
+    __importStar = function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+
+    __importDefault = function (mod) {
+        return (mod && mod.__esModule) ? mod : { "default": mod };
+    };
+
+    __classPrivateFieldGet = function (receiver, state, kind, f) {
+        if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+        if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+        return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+    };
+
+    __classPrivateFieldSet = function (receiver, state, value, kind, f) {
+        if (kind === "m") throw new TypeError("Private method is not writable");
+        if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+        if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+        return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+    };
+
+    __classPrivateFieldIn = function (state, receiver) {
+        if (receiver === null || (typeof receiver !== "object" && typeof receiver !== "function")) throw new TypeError("Cannot use 'in' operator on non-object");
+        return typeof state === "function" ? receiver === state : state.has(receiver);
+    };
+
+    __addDisposableResource = function (env, value, async) {
+        if (value !== null && value !== void 0) {
+            if (typeof value !== "object" && typeof value !== "function") throw new TypeError("Object expected.");
+            var dispose;
+            if (async) {
+                if (!Symbol.asyncDispose) throw new TypeError("Symbol.asyncDispose is not defined.");
+                dispose = value[Symbol.asyncDispose];
+            }
+            if (dispose === void 0) {
+                if (!Symbol.dispose) throw new TypeError("Symbol.dispose is not defined.");
+                dispose = value[Symbol.dispose];
+            }
+            if (typeof dispose !== "function") throw new TypeError("Object not disposable.");
+            env.stack.push({ value: value, dispose: dispose, async: async });
+        }
+        else if (async) {
+            env.stack.push({ async: true });
+        }
+        return value;
+    };
+
+    var _SuppressedError = typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
+        var e = new Error(message);
+        return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
+    };
+
+    __disposeResources = function (env) {
+        function fail(e) {
+            env.error = env.hasError ? new _SuppressedError(e, env.error, "An error was suppressed during disposal.") : e;
+            env.hasError = true;
+        }
+        function next() {
+            while (env.stack.length) {
+                var rec = env.stack.pop();
+                try {
+                    var result = rec.dispose && rec.dispose.call(rec.value);
+                    if (rec.async) return Promise.resolve(result).then(next, function(e) { fail(e); return next(); });
+                }
+                catch (e) {
+                    fail(e);
+                }
+            }
+            if (env.hasError) throw env.error;
+        }
+        return next();
+    };
+
+    exporter("__extends", __extends);
+    exporter("__assign", __assign);
+    exporter("__rest", __rest);
+    exporter("__decorate", __decorate);
+    exporter("__param", __param);
+    exporter("__esDecorate", __esDecorate);
+    exporter("__runInitializers", __runInitializers);
+    exporter("__propKey", __propKey);
+    exporter("__setFunctionName", __setFunctionName);
+    exporter("__metadata", __metadata);
+    exporter("__awaiter", __awaiter);
+    exporter("__generator", __generator);
+    exporter("__exportStar", __exportStar);
+    exporter("__createBinding", __createBinding);
+    exporter("__values", __values);
+    exporter("__read", __read);
+    exporter("__spread", __spread);
+    exporter("__spreadArrays", __spreadArrays);
+    exporter("__spreadArray", __spreadArray);
+    exporter("__await", __await);
+    exporter("__asyncGenerator", __asyncGenerator);
+    exporter("__asyncDelegator", __asyncDelegator);
+    exporter("__asyncValues", __asyncValues);
+    exporter("__makeTemplateObject", __makeTemplateObject);
+    exporter("__importStar", __importStar);
+    exporter("__importDefault", __importDefault);
+    exporter("__classPrivateFieldGet", __classPrivateFieldGet);
+    exporter("__classPrivateFieldSet", __classPrivateFieldSet);
+    exporter("__classPrivateFieldIn", __classPrivateFieldIn);
+    exporter("__addDisposableResource", __addDisposableResource);
+    exporter("__disposeResources", __disposeResources);
 });
 
 
@@ -43121,6 +44425,27 @@ var ConfigEnv;
     ConfigEnv["LOCAL"] = "local";
     ConfigEnv["PRODUCTION"] = "production";
 })(ConfigEnv || (ConfigEnv = {}));
+var types_TransferMethod;
+(function (TransferMethod) {
+    TransferMethod["MULTIPART"] = "multipart";
+    TransferMethod["POST_URL"] = "post-url";
+    TransferMethod["PUT_URL"] = "put-url";
+    TransferMethod["SOURCE_URL"] = "source-url";
+    TransferMethod["DEST_URL"] = "dest-url";
+})(types_TransferMethod || (types_TransferMethod = {}));
+/**
+ * Secure Audit interface definitions
+ */
+var Audit;
+(function (Audit) {
+    let DownloadFormat;
+    (function (DownloadFormat) {
+        /** JSON. */
+        DownloadFormat["JSON"] = "json";
+        /** CSV. */
+        DownloadFormat["CSV"] = "csv";
+    })(DownloadFormat = Audit.DownloadFormat || (Audit.DownloadFormat = {}));
+})(Audit || (Audit = {}));
 /**
  * Intel services interface definitions
  */
@@ -43179,6 +44504,21 @@ var types_Vault;
         AsymmetricAlgorithm["RSA4096_PSS_SHA256"] = "RSA-PSS-4096-SHA256";
         AsymmetricAlgorithm["RSA4096_PSS_SHA512"] = "RSA-PSS-4096-SHA512";
         AsymmetricAlgorithm["RSA"] = "RSA-PKCS1V15-2048-SHA256";
+        AsymmetricAlgorithm["Ed25519_DILITHIUM2_BETA"] = "ED25519-DILITHIUM2-BETA";
+        AsymmetricAlgorithm["Ed448_DILITHIUM3_BETA"] = "ED448-DILITHIUM3-BETA";
+        AsymmetricAlgorithm["SPHINCSPLUS_128F_SHAKE256_SIMPLE_BETA"] = "SPHINCSPLUS-128F-SHAKE256-SIMPLE-BETA";
+        AsymmetricAlgorithm["SPHINCSPLUS_128F_SHAKE256_ROBUST_BETA"] = "SPHINCSPLUS-128F-SHAKE256-ROBUST-BETA";
+        AsymmetricAlgorithm["SPHINCSPLUS_192F_SHAKE256_SIMPLE_BETA"] = "SPHINCSPLUS-192F-SHAKE256-SIMPLE-BETA";
+        AsymmetricAlgorithm["SPHINCSPLUS_192F_SHAKE256_ROBUST_BETA"] = "SPHINCSPLUS-192F-SHAKE256-ROBUST-BETA";
+        AsymmetricAlgorithm["SPHINCSPLUS_256F_SHAKE256_SIMPLE_BETA"] = "SPHINCSPLUS-256F-SHAKE256-SIMPLE-BETA";
+        AsymmetricAlgorithm["SPHINCSPLUS_256F_SHAKE256_ROBUST_BETA"] = "SPHINCSPLUS-256F-SHAKE256-ROBUST-BETA";
+        AsymmetricAlgorithm["SPHINCSPLUS_128F_SHA256_SIMPLE_BETA"] = "SPHINCSPLUS-128F-SHA256-SIMPLE-BETA";
+        AsymmetricAlgorithm["SPHINCSPLUS_128F_SHA256_ROBUST_BETA"] = "SPHINCSPLUS-128F-SHA256-ROBUST-BETA";
+        AsymmetricAlgorithm["SPHINCSPLUS_192F_SHA256_SIMPLE_BETA"] = "SPHINCSPLUS-192F-SHA256-SIMPLE-BETA";
+        AsymmetricAlgorithm["SPHINCSPLUS_192F_SHA256_ROBUST_BETA"] = "SPHINCSPLUS-192F-SHA256-ROBUST-BETA";
+        AsymmetricAlgorithm["SPHINCSPLUS_256F_SHA256_SIMPLE_BETA"] = "SPHINCSPLUS-256F-SHA256-SIMPLE-BETA";
+        AsymmetricAlgorithm["SPHINCSPLUS_256F_SHA256_ROBUST_BETA"] = "SPHINCSPLUS-256F-SHA256-ROBUST-BETA";
+        AsymmetricAlgorithm["FALCON_1024_BETA"] = "FALCON-1024-BETA";
     })(AsymmetricAlgorithm = Vault.AsymmetricAlgorithm || (Vault.AsymmetricAlgorithm = {}));
     let SymmetricAlgorithm;
     (function (SymmetricAlgorithm) {
@@ -43188,6 +44528,8 @@ var types_Vault;
         SymmetricAlgorithm["AES128_CFB"] = "AES-CFB-128";
         SymmetricAlgorithm["AES256_CFB"] = "AES-CFB-256";
         SymmetricAlgorithm["AES256_GCM"] = "AES-GCM-256";
+        SymmetricAlgorithm["AES128_CBC"] = "AES-CBC-128";
+        SymmetricAlgorithm["AES256_CBC"] = "AES-CBC-256";
         SymmetricAlgorithm["AES"] = "AES-CFB-128";
     })(SymmetricAlgorithm = Vault.SymmetricAlgorithm || (Vault.SymmetricAlgorithm = {}));
     let ItemType;
@@ -43209,6 +44551,7 @@ var types_Vault;
         ItemVersionState["SUSPENDED"] = "suspended";
         ItemVersionState["COMPROMISED"] = "compromised";
         ItemVersionState["DESTROYED"] = "destroyed";
+        ItemVersionState["INHERITED"] = "inherited";
     })(ItemVersionState = Vault.ItemVersionState || (Vault.ItemVersionState = {}));
     let ItemOrder;
     (function (ItemOrder) {
@@ -43329,76 +44672,67 @@ var AuthN;
         })(Invite = User.Invite || (User.Invite = {}));
     })(User = AuthN.User || (AuthN.User = {}));
 })(AuthN || (AuthN = {}));
+var AuthZ;
+(function (AuthZ) {
+    let ItemOrder;
+    (function (ItemOrder) {
+        ItemOrder["ASC"] = "asc";
+        ItemOrder["DESC"] = "desc";
+    })(ItemOrder = AuthZ.ItemOrder || (AuthZ.ItemOrder = {}));
+    let TupleOrderBy;
+    (function (TupleOrderBy) {
+        TupleOrderBy["RESOURCE_NAMESPACE"] = "resource_namespace";
+        TupleOrderBy["RESOURCE_ID"] = "resource_id";
+        TupleOrderBy["RELATION"] = "relation";
+        TupleOrderBy["SUBJECT_NAMESPACE"] = "subject_namespace";
+        TupleOrderBy["SUBJECT_ID"] = "subject_id";
+        TupleOrderBy["SUBJECT_ACTION"] = "subject_action";
+    })(TupleOrderBy = AuthZ.TupleOrderBy || (AuthZ.TupleOrderBy = {}));
+})(AuthZ || (AuthZ = {}));
 
 ;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/config.js
 
-const version = "3.0.0";
-class PangeaConfig {
+const version = "3.8.0";
+/** Configuration for a Pangea service client. */
+class config_PangeaConfig {
+    /** Pangea API domain. */
+    domain = "pangea.cloud";
+    /**
+     * Pangea environment.
+     *
+     * This is intended to facilitate SDK development and should not be touched in
+     * everyday usage.
+     */
+    environment = ConfigEnv.PRODUCTION;
+    /** Config ID for multi-config projects. */
+    configID;
+    /**
+     * Whether or not to perform requests via plain HTTP, as opposed to secure
+     * HTTPS.
+     */
+    insecure = false;
+    /** How many times a request should be retried on failure. */
+    requestRetries = 3;
+    /** Maximum allowed time (in milliseconds) for a request to complete. */
+    requestTimeout = 5000;
+    /** Whether or not queued request retries are enabled. */
+    queuedRetryEnabled = true;
+    /** How many queued request retries there should be on failure. */
+    queuedRetries = 4;
+    /** Timeout for polling results after a HTTP/202 (in milliseconds). */
+    pollResultTimeoutMs = 120 * 1000;
+    /** User-Agent string to append to the default one. */
+    customUserAgent = "";
+    /**
+     * Create a new `PangeaConfig`.
+     *
+     * @param options Configuration options.
+     */
     constructor(options) {
-        Object.defineProperty(this, "domain", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: "pangea.cloud"
-        });
-        Object.defineProperty(this, "environment", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: ConfigEnv.PRODUCTION
-        });
-        Object.defineProperty(this, "configID", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "insecure", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: false
-        });
-        Object.defineProperty(this, "requestRetries", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: 3
-        });
-        Object.defineProperty(this, "requestTimeout", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: 5000
-        });
-        Object.defineProperty(this, "queuedRetryEnabled", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: true
-        });
-        Object.defineProperty(this, "queuedRetries", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: 4
-        });
-        Object.defineProperty(this, "pollResultTimeoutMs", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: 60 * 1000
-        });
-        Object.defineProperty(this, "customUserAgent", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: ""
-        });
         Object.assign(this, options);
     }
 }
-/* harmony default export */ const dist_config = (PangeaConfig);
+/* harmony default export */ const dist_config = (config_PangeaConfig);
 
 ;// CONCATENATED MODULE: external "node:process"
 const external_node_process_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:process");
@@ -49267,6 +50601,15 @@ var errors_PangeaErrors;
         }
     }
     PangeaErrors.PangeaError = PangeaError;
+    class ServiceTemporarilyUnavailable extends PangeaError {
+        body;
+        constructor(body) {
+            super("Service temporarily unavailable");
+            this.name = "ServiceTemporarilyUnavailable";
+            this.body = body;
+        }
+    }
+    PangeaErrors.ServiceTemporarilyUnavailable = ServiceTemporarilyUnavailable;
     class AuditError extends PangeaError {
         constructor(message) {
             super(message);
@@ -49274,31 +50617,29 @@ var errors_PangeaErrors;
         }
     }
     PangeaErrors.AuditError = AuditError;
+    class PresignedUploadError extends PangeaError {
+        body;
+        constructor(message, body) {
+            super(message);
+            this.name = "PresignedUploadError";
+            this.body = body;
+        }
+    }
+    PangeaErrors.PresignedUploadError = PresignedUploadError;
     class AuditEventError extends AuditError {
+        envelope;
         constructor(message, envelope) {
             super(message);
-            Object.defineProperty(this, "envelope", {
-                enumerable: true,
-                configurable: true,
-                writable: true,
-                value: void 0
-            });
             this.name = "PangeaAuditEventError";
             this.envelope = envelope;
         }
     }
     PangeaErrors.AuditEventError = AuditEventError;
     class APIError extends Error {
+        response;
         constructor(message, response) {
             super(message);
-            Object.defineProperty(this, "response", {
-                enumerable: true,
-                configurable: true,
-                writable: true,
-                value: void 0
-            });
             this.name = "PangeanAPIError";
-            response.result = response.result;
             this.response = response;
         }
         get pangeaResponse() {
@@ -49403,17 +50744,14 @@ var errors_PangeaErrors;
     PangeaErrors.InternalServerError = InternalServerError;
     // Accepted request exception. Async response
     class AcceptedRequestException extends APIError {
+        accepted_result;
+        request_id;
         constructor(response) {
             const message = `summary: ${response.summary}. request_id: ${response.request_id}.`;
             super(message, response);
-            Object.defineProperty(this, "request_id", {
-                enumerable: true,
-                configurable: true,
-                writable: true,
-                value: void 0
-            });
             this.request_id = response.request_id;
             this.name = "AcceptedRequestException";
+            this.accepted_result = response.result;
         }
     }
     PangeaErrors.AcceptedRequestException = AcceptedRequestException;
@@ -49441,71 +50779,255 @@ var errors_PangeaErrors;
     PangeaErrors.ForbiddenVaultOperation = ForbiddenVaultOperation;
 })(errors_PangeaErrors || (errors_PangeaErrors = {}));
 
+;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/utils/multipart.js
+/**
+ * MIT License
+ *
+ * Copyright (c) 2018-2022 Ignacio Mazzara
+ * Copyright (c) 2024 Pangea Cyber Corporation
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+var ParsingState;
+(function (ParsingState) {
+    ParsingState[ParsingState["INIT"] = 0] = "INIT";
+    ParsingState[ParsingState["READING_HEADERS"] = 1] = "READING_HEADERS";
+    ParsingState[ParsingState["READING_DATA"] = 2] = "READING_DATA";
+    ParsingState[ParsingState["READING_PART_SEPARATOR"] = 3] = "READING_PART_SEPARATOR";
+})(ParsingState || (ParsingState = {}));
+function parse(multipartBodyBuffer, boundary) {
+    let lastLine = "";
+    let contentDispositionHeader = "";
+    let contentTypeHeader = "";
+    let state = ParsingState.INIT;
+    let buffer = [];
+    const allParts = [];
+    let currentPartHeaders = [];
+    for (let i = 0; i < multipartBodyBuffer.length; i++) {
+        const oneByte = multipartBodyBuffer[i] ?? 0;
+        const prevByte = i > 0 ? multipartBodyBuffer[i - 1] ?? 0 : null;
+        // 0x0a => \n
+        // 0x0d => \r
+        const newLineDetected = oneByte === 0x0a && prevByte === 0x0d;
+        const newLineChar = oneByte === 0x0a || oneByte === 0x0d;
+        if (!newLineChar)
+            lastLine += String.fromCharCode(oneByte);
+        if (ParsingState.INIT === state && newLineDetected) {
+            // searching for boundary
+            if ("--" + boundary === lastLine) {
+                state = ParsingState.READING_HEADERS; // found boundary. start reading headers
+            }
+            lastLine = "";
+        }
+        else if (ParsingState.READING_HEADERS === state && newLineDetected) {
+            // parsing headers. Headers are separated by an empty line from the content. Stop reading headers when the line is empty
+            if (lastLine.length) {
+                currentPartHeaders.push(lastLine);
+            }
+            else {
+                // found empty line. search for the headers we want and set the values
+                for (const h of currentPartHeaders) {
+                    if (h.toLowerCase().startsWith("content-disposition:")) {
+                        contentDispositionHeader = h;
+                    }
+                    else if (h.toLowerCase().startsWith("content-type:")) {
+                        contentTypeHeader = h;
+                    }
+                }
+                state = ParsingState.READING_DATA;
+                buffer = [];
+            }
+            lastLine = "";
+        }
+        else if (ParsingState.READING_DATA === state) {
+            // parsing data
+            if (lastLine.length > boundary.length + 4) {
+                lastLine = ""; // mem save
+            }
+            if ("--" + boundary === lastLine) {
+                const j = buffer.length - lastLine.length;
+                const part = buffer.slice(0, j - 1);
+                allParts.push(multipart_process({ contentDispositionHeader, contentTypeHeader, part }));
+                buffer = [];
+                currentPartHeaders = [];
+                lastLine = "";
+                state = ParsingState.READING_PART_SEPARATOR;
+                contentDispositionHeader = "";
+                contentTypeHeader = "";
+            }
+            else {
+                buffer.push(oneByte);
+            }
+            if (newLineDetected) {
+                lastLine = "";
+            }
+        }
+        else if (ParsingState.READING_PART_SEPARATOR === state) {
+            if (newLineDetected) {
+                state = ParsingState.READING_HEADERS;
+            }
+        }
+    }
+    return allParts;
+}
+//  read the boundary from the content-type header sent by the http client
+//  this value may be similar to:
+//  'multipart/form-data; boundary=----WebKitFormBoundaryvm5A9tzU1ONaGP5B',
+function getBoundary(header) {
+    const items = header.split(";");
+    if (items) {
+        for (let i = 0; i < items.length; i++) {
+            const item = new String(items[i]).trim();
+            if (item.indexOf("boundary") >= 0) {
+                const k = item.split("=");
+                return new String(k[1]).trim().replace(/^["']|["']$/g, "");
+            }
+        }
+    }
+    return "";
+}
+function multipart_process(part) {
+    let input = {};
+    const filename = getHeaderField(part.contentDispositionHeader, "filename", "defaultFilename");
+    if (filename) {
+        Object.defineProperty(input, "filename", {
+            value: filename,
+            writable: true,
+            enumerable: true,
+            configurable: true,
+        });
+    }
+    const parts = part.contentTypeHeader.split(":");
+    const contentType = parts && parts[1] ? parts[1].trim() : "";
+    if (contentType) {
+        Object.defineProperty(input, "type", {
+            value: contentType,
+            writable: true,
+            enumerable: true,
+            configurable: true,
+        });
+    }
+    const name = getHeaderField(part.contentDispositionHeader, "name", "defaultName");
+    // always process the name field
+    Object.defineProperty(input, "name", {
+        value: name,
+        writable: true,
+        enumerable: true,
+        configurable: true,
+    });
+    Object.defineProperty(input, "data", {
+        value: Buffer.from(part.part),
+        writable: true,
+        enumerable: true,
+        configurable: true,
+    });
+    return input;
+}
+function getHeaderField(header, field, defaultValue) {
+    const parts = header.split(field + "=");
+    if (parts.length > 1 && parts[1]) {
+        const valueParts = parts[1].split(";");
+        if (valueParts[0]) {
+            return valueParts[0].trim().replace(/['"]+/g, "");
+        }
+    }
+    return defaultValue;
+}
+
+// EXTERNAL MODULE: external "path"
+var external_path_ = __nccwpck_require__(1017);
 ;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/response.js
+
+
+
 const SupportedJSONFields = ["message", "new", "old"];
 /**
  * Pangea Response object
  */
 class ResponseObject {
+    request_id = "InvalidPayloadReceived";
+    request_time = "InvalidPayloadReceived";
+    response_time = "InvalidPayloadReceived";
+    status = "NoStatus";
+    result = {};
+    accepted_result;
+    summary = "InvalidPayloadReceived";
     constructor(body) {
-        Object.defineProperty(this, "request_id", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: "InvalidPayloadReceived"
-        });
-        Object.defineProperty(this, "request_time", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: "InvalidPayloadReceived"
-        });
-        Object.defineProperty(this, "response_time", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: "InvalidPayloadReceived"
-        });
-        Object.defineProperty(this, "status", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: "InvalidPayloadReceived"
-        });
-        Object.defineProperty(this, "result", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: {}
-        });
-        Object.defineProperty(this, "summary", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: "InvalidPayloadReceived"
-        });
         Object.assign(this, body);
     }
 }
+class AttachedFile {
+    filename;
+    file;
+    contentType;
+    constructor(filename, file, contentType) {
+        this.filename = filename;
+        this.file = file;
+        this.contentType = contentType;
+    }
+    save(destFolder, filename) {
+        if (!destFolder) {
+            destFolder = ".";
+        }
+        if (!filename) {
+            filename = this.filename ? this.filename : "defaultName.txt";
+        }
+        if (!external_fs_.existsSync(destFolder)) {
+            // If it doesn't exist, create it
+            external_fs_.mkdirSync(destFolder, { recursive: true });
+        }
+        const filepath = external_path_.resolve(destFolder, filename);
+        external_fs_.writeFileSync(filepath, this.file);
+    }
+}
 class PangeaResponse extends ResponseObject {
+    gotResponse;
+    success;
+    attachedFiles = [];
     constructor(response) {
-        const obj = JSON.parse(JSON.stringify(response.body), parseJSONfields);
-        super(obj);
-        Object.defineProperty(this, "gotResponse", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "success", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
+        let jsonResp = {};
+        let attachedFilesTemp = [];
+        if (response.headers["content-type"] &&
+            response.headers["content-type"].includes("multipart")) {
+            const boundary = getBoundary(response.headers["content-type"]);
+            const parts = parse(response.rawBody, boundary);
+            parts.forEach((part, index) => {
+                if (index == 0) {
+                    jsonResp = JSON.parse(part.data.toString("utf-8"));
+                }
+                else {
+                    attachedFilesTemp.push(new AttachedFile(part.filename, part.data, part.type));
+                }
+            });
+        }
+        else {
+            jsonResp = JSON.parse(JSON.stringify(response.body), parseJSONfields);
+        }
+        super(jsonResp);
+        this.attachedFiles = attachedFilesTemp;
         this.gotResponse = response;
         this.success = this.status === "Success";
         this.result = this.result == null ? {} : this.result;
+        if (this.gotResponse.statusCode == 202) {
+            this.accepted_result = this.result;
+            this.result = {};
+        }
     }
     // Return raw Pangea API response body
     body() {
@@ -49541,47 +51063,19 @@ function parseJSONfields(key, value) {
 
 
 
+
+
 const request_delay = async (ms) => new Promise((resolve) => {
     setTimeout(resolve, ms);
 });
-class PangeaRequest {
+class request_PangeaRequest {
+    serviceName;
+    token;
+    config;
+    extraHeaders;
+    configID;
+    userAgent = "";
     constructor(serviceName, token, config, configID) {
-        Object.defineProperty(this, "serviceName", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "token", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "config", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "extraHeaders", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "configID", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "userAgent", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: ""
-        });
         if (!serviceName)
             throw new Error("A serviceName is required");
         if (!token)
@@ -49598,39 +51092,240 @@ class PangeaRequest {
             data.config_id = this.configID;
         }
     }
+    /**
+     * `POST` request.
+     *
+     * @template R Result type.
+     * @param endpoint Endpoint path.
+     * @param data Request body.
+     * @param options Additional options.
+     * @returns A `Promise` of the response.
+     */
     async post(endpoint, data, options = {}) {
         const url = this.getUrl(endpoint);
         this.checkConfigID(data);
-        const request = new Options({
-            headers: this.getHeaders(),
-            json: data,
-            retry: { limit: this.config.requestRetries },
-            responseType: "json",
-        });
-        return await this.doPost(url, request, options);
+        let response;
+        let entry = options.files ? Object.entries(options.files)[0] : undefined;
+        if (options.files && entry) {
+            if (data.transfer_method === types_TransferMethod.POST_URL) {
+                response = await this.fullPostPresignedURL(endpoint, data, entry[1]);
+            }
+            else {
+                response = await this.postMultipart(endpoint, data, options.files);
+            }
+        }
+        else {
+            let responseType = data.transfer_method == types_TransferMethod.MULTIPART ? "buffer" : "json";
+            const request = new Options({
+                headers: this.getHeaders(),
+                json: data,
+                retry: { limit: this.config.requestRetries },
+                responseType: responseType,
+            });
+            response = await this.httpPost(url, request);
+        }
+        return this.handleHttpResponse(response, options);
     }
-    async postMultipart(endpoint, data, filepath, options = {}) {
+    getFilenameFromContentDisposition(contentDispositionHeader) {
+        let contentDisposition = "";
+        if (Array.isArray(contentDispositionHeader)) {
+            contentDisposition = contentDispositionHeader[0] ?? contentDisposition;
+        }
+        return getHeaderField(contentDisposition, "filename", undefined);
+    }
+    getFilenameFromURL(url) {
+        return new URL(url).pathname.split("/").pop();
+    }
+    async downloadFile(url) {
+        const options = new Options({
+            retry: { limit: this.config.requestRetries },
+            responseType: "buffer",
+        });
+        const response = (await got_dist_source.get(url, options));
+        let filename = this.getFilenameFromContentDisposition(response.headers["Content-Disposition"]);
+        if (filename === undefined) {
+            filename = this.getFilenameFromURL(url);
+            if (filename === undefined) {
+                filename = "default_filename";
+            }
+        }
+        const contentTypeHeader = response.headers["Content-Type"] ?? "";
+        let contentType = "application/octet-stream";
+        if (Array.isArray(contentTypeHeader)) {
+            contentType = contentTypeHeader[0] ?? contentType;
+        }
+        return new AttachedFile(filename, response.rawBody, contentType);
+    }
+    async postMultipart(endpoint, data, files) {
         const url = this.getUrl(endpoint);
         const form = new form_data();
         this.checkConfigID(data);
-        form.append("request", JSON.stringify(data), { contentType: "application/json" });
-        form.append("upload", external_fs_.createReadStream(filepath), {
-            contentType: "application/octet-stream",
+        form.append("request", JSON.stringify(data), {
+            contentType: "application/json",
         });
+        for (let [name, fileData] of Object.entries(files)) {
+            form.append(name, this.getFileToForm(fileData.file), {
+                contentType: "application/octet-stream",
+            });
+        }
         const request = new Options({
             headers: this.getHeaders(),
             body: form,
             retry: { limit: this.config.requestRetries },
             responseType: "json",
         });
-        return await this.doPost(url, request, options);
+        return await this.httpPost(url, request);
     }
-    async doPost(url, request, options = {}) {
+    getFileToForm(file) {
+        if (typeof file === "string") {
+            return external_fs_.createReadStream(file);
+        }
+        return file;
+    }
+    getFileToBuffer(file) {
+        if (typeof file === "string") {
+            return external_fs_.readFileSync(file);
+        }
+        return file;
+    }
+    async fullPostPresignedURL(endpoint, data, fileData) {
+        const response = await this.requestPresignedURL(endpoint, data);
+        if (!response.gotResponse || !response.accepted_result?.post_url) {
+            throw new errors_PangeaErrors.PangeaError("Failed to request post presigned URL");
+        }
+        const presigned_url = response.accepted_result.post_url;
+        const file_details = response.accepted_result?.post_form_data;
+        this.postPresignedURL(presigned_url, {
+            file: fileData.file,
+            file_details: file_details,
+            name: fileData.name,
+        });
+        return response.gotResponse;
+    }
+    async postPresignedURL(url, fileData) {
+        if (!fileData.file_details) {
+            throw new errors_PangeaErrors.PangeaError("file_details should be defined to do a post");
+        }
+        const form = new form_data();
+        if (fileData.file_details) {
+            for (const [key, value] of Object.entries(fileData.file_details)) {
+                form.append(key, value);
+            }
+        }
+        form.append("file", this.getFileToForm(fileData.file), {
+            contentType: "application/octet-stream",
+        });
+        const request = new Options({
+            body: form,
+            retry: { limit: this.config.requestRetries },
+            responseType: "json",
+        });
         try {
-            const apiCall = (await got_dist_source.post(url, request));
-            let pangeaResponse = new PangeaResponse(apiCall);
-            if (pangeaResponse.gotResponse?.statusCode === 202 && this.config.queuedRetryEnabled) {
-                if (options.pollResultSync) {
+            await this.httpPost(url, request);
+        }
+        catch (error) {
+            if (error instanceof HTTPError) {
+                throw new errors_PangeaErrors.PresignedUploadError(`presigned POST failure: ${error.code}`, JSON.stringify(error.response.body));
+            }
+        }
+        return;
+    }
+    async putPresignedURL(url, fileData) {
+        if (fileData.file_details) {
+            throw new errors_PangeaErrors.PangeaError("file_details should be undefined to do a put");
+        }
+        const request = new Options({
+            body: this.getFileToBuffer(fileData.file),
+            retry: { limit: this.config.requestRetries },
+            responseType: "json",
+        });
+        try {
+            await got_dist_source.put(url, request);
+        }
+        catch (error) {
+            if (error instanceof HTTPError) {
+                throw new errors_PangeaErrors.PresignedUploadError(`presigned PUT failure: ${error.code}`, JSON.stringify(error.response.body));
+            }
+        }
+        return;
+    }
+    async requestPresignedURL(endpoint, data) {
+        let acceptedError;
+        if (!data.transfer_method) {
+            data.transfer_method = types_TransferMethod.PUT_URL;
+        }
+        try {
+            await this.post(endpoint, data, {
+                pollResultSync: false,
+            });
+            throw new errors_PangeaErrors.PangeaError("This call should return 202");
+        }
+        catch (error) {
+            if (!(error instanceof errors_PangeaErrors.AcceptedRequestException)) {
+                throw error;
+            }
+            else {
+                acceptedError = error;
+            }
+        }
+        return await this.pollPresignedURL(acceptedError.response);
+    }
+    async pollPresignedURL(response) {
+        if (response.accepted_result &&
+            (response.accepted_result.post_url || response.accepted_result.put_url)) {
+            return response;
+        }
+        let retryCount = 0;
+        const start = Date.now();
+        let loopResponse = response;
+        const body = loopResponse.gotResponse?.body;
+        const requestId = body?.request_id;
+        let loopError;
+        while (!loopResponse.accepted_result?.post_url &&
+            loopResponse.accepted_result?.put_url &&
+            !this.reachTimeout(start)) {
+            retryCount += 1;
+            const waitTime = this.getDelay(retryCount, start);
+            await request_delay(waitTime);
+            try {
+                loopResponse = await this.pollResult(requestId, false);
+                throw new errors_PangeaErrors.PangeaError("This call should return 202");
+            }
+            catch (error) {
+                if (!(error instanceof errors_PangeaErrors.AcceptedRequestException)) {
+                    throw error;
+                }
+                else {
+                    loopError = error;
+                    loopResponse = error.pangeaResponse;
+                }
+            }
+        }
+        if (loopResponse.accepted_result?.post_url ||
+            loopResponse.accepted_result?.put_url) {
+            return loopResponse;
+        }
+        else {
+            throw loopError;
+        }
+    }
+    async httpPost(url, request) {
+        try {
+            return (await got_dist_source.post(url, request));
+        }
+        catch (error) {
+            if (error instanceof HTTPError) {
+                // This MUST throw an error
+                this.checkResponse(new PangeaResponse(error.response));
+            }
+            throw error;
+        }
+    }
+    async handleHttpResponse(response, options = {}) {
+        try {
+            let pangeaResponse = new PangeaResponse(response);
+            if (response.statusCode === 202) {
+                if (options.pollResultSync !== false) {
                     pangeaResponse = await this.handleAsync(pangeaResponse);
                 }
                 return this.checkResponse(pangeaResponse);
@@ -49639,7 +51334,7 @@ class PangeaRequest {
         }
         catch (error) {
             if (error instanceof HTTPError) {
-                // This MUST throw and error
+                // This MUST throw an error
                 return this.checkResponse(new PangeaResponse(error.response));
             }
             // TODO: add handling of lower level errors?
@@ -49656,13 +51351,17 @@ class PangeaRequest {
         try {
             const response = (await got_dist_source.get(url, options));
             const pangeaResponse = new PangeaResponse(response);
-            return checkResponse ? this.checkResponse(pangeaResponse) : pangeaResponse;
+            return checkResponse
+                ? this.checkResponse(pangeaResponse)
+                : pangeaResponse;
         }
         catch (error) {
             if (error instanceof HTTPError) {
                 // This MUST throw and error
                 const pangeaResponse = new PangeaResponse(error.response);
-                return checkResponse ? this.checkResponse(pangeaResponse) : pangeaResponse;
+                return checkResponse
+                    ? this.checkResponse(pangeaResponse)
+                    : pangeaResponse;
             }
             // TODO: add handling of lower level errors?
             throw error;
@@ -49686,11 +51385,15 @@ class PangeaRequest {
         return await this.get(path, checkResponse);
     }
     async handleAsync(pangeaResponse) {
+        if (!this.config.queuedRetryEnabled) {
+            return pangeaResponse;
+        }
         let retryCount = 0;
         const start = Date.now();
         const body = pangeaResponse.gotResponse?.body;
         const requestId = body?.request_id;
-        while (pangeaResponse.gotResponse?.statusCode === 202 && !this.reachTimeout(start)) {
+        while (pangeaResponse.gotResponse?.statusCode === 202 &&
+            !this.reachTimeout(start)) {
             retryCount += 1;
             const waitTime = this.getDelay(retryCount, start);
             // eslint-disable-next-line no-await-in-loop
@@ -49711,7 +51414,8 @@ class PangeaRequest {
     }
     getUrl(path) {
         let url;
-        if (this.config.domain.startsWith("http://") || this.config.domain.startsWith("https://")) {
+        if (this.config.domain.startsWith("http://") ||
+            this.config.domain.startsWith("https://")) {
             url = `${this.config.domain}/${path}`;
         }
         else {
@@ -49741,6 +51445,9 @@ class PangeaRequest {
     checkResponse(response) {
         if (response.success) {
             return response;
+        }
+        if (response.gotResponse?.statusCode === 503) {
+            throw new errors_PangeaErrors.ServiceTemporarilyUnavailable(JSON.stringify(response.body));
         }
         switch (response.status) {
             case "ValidationError":
@@ -49777,12 +51484,17 @@ class PangeaRequest {
         }
     }
 }
-/* harmony default export */ const request = (PangeaRequest);
+/* harmony default export */ const request = (request_PangeaRequest);
 
 ;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/services/base.js
 
 
 class BaseService {
+    serviceName;
+    token;
+    config;
+    request_ = undefined;
+    configID;
     /*
     Required:
       - serviceName: name of the service
@@ -49792,36 +51504,6 @@ class BaseService {
       - config: a PangeaConfig object, uses defaults if non passed
     */
     constructor(serviceName, token, config, configID) {
-        Object.defineProperty(this, "serviceName", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "token", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "config", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "request_", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: undefined
-        });
-        Object.defineProperty(this, "configID", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
         if (!serviceName)
             throw new Error("A serviceName is required");
         if (!token)
@@ -49834,11 +51516,20 @@ class BaseService {
     async get(endpoint) {
         return await this.request.get(endpoint);
     }
+    /**
+     * `POST` request.
+     *
+     * @template R Result type.
+     * @param endpoint Endpoint path.
+     * @param data Request body.
+     * @param options Additional options.
+     * @returns A `Promise` of the response.
+     */
     async post(endpoint, data, options = {}) {
         return await this.request.post(endpoint, data, options);
     }
-    async postMultipart(endpoint, data, filepath, options = {}) {
-        return await this.request.postMultipart(endpoint, data, filepath, options);
+    async downloadFile(url) {
+        return await this.request.downloadFile(url);
     }
     async pollResult(request_id) {
         return await this.request.pollResult(request_id, true);
@@ -49950,13 +51641,8 @@ const allowedKeyTypes = (/* unused pure expression or super */ null && (["ed2551
  * Signer class to sign event in AuditService
  */
 class Signer {
+    privateKey;
     constructor(privateKeyFilename) {
-        Object.defineProperty(this, "privateKey", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
         this.privateKey = createPrivateKey(fs.readFileSync(privateKeyFilename));
     }
     /**
@@ -50040,9 +51726,15 @@ class Verifier {
     }
 }
 
-// EXTERNAL MODULE: external "crypto"
-var external_crypto_ = __nccwpck_require__(6113);
+;// CONCATENATED MODULE: external "node:fs"
+const external_node_fs_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:fs");
+// EXTERNAL MODULE: ./node_modules/@aws-crypto/crc32c/build/main/index.js
+var main = __nccwpck_require__(7035);
 ;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/utils/utils.js
+
+
+
+
 
 
 function orderKeysRecursive(obj) {
@@ -50118,6 +51810,7 @@ function hashNTLM(password) {
 function getHashPrefix(hash, len = 5) {
     return hash.substring(0, len);
 }
+// TODO: convert to enum
 const TestEnvironment = {
     DEVELOP: "DEV",
     LIVE: "LVE",
@@ -50153,6 +51846,28 @@ function getConfigID(environment, service, configNumber) {
 function getCustomSchemaTestToken(environment) {
     const name = "PANGEA_INTEGRATION_CUSTOM_SCHEMA_TOKEN_" + environment;
     return process.env[name] || "";
+}
+function getFileUploadParams(file) {
+    const hash = external_node_crypto_namespaceObject.createHash("sha256");
+    let data;
+    if (typeof file === "string") {
+        data = external_node_fs_namespaceObject.readFileSync(file);
+    }
+    else if (external_node_buffer_namespaceObject.Buffer.isBuffer(file)) {
+        data = file;
+    }
+    else {
+        throw new errors_PangeaErrors.PangeaError("Invalid file type");
+    }
+    const size = data.length;
+    hash.update(data);
+    const sha256hex = hash.digest("hex");
+    const crcValue = (0,main.crc32c)(data);
+    return {
+        sha256: sha256hex,
+        crc32c: crcValue.toString(16),
+        size: size,
+    };
 }
 
 ;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/utils/verification.js
@@ -50221,12 +51936,16 @@ const verifyLogProof = (initialNodeHash, rootHash, proofs) => {
     let nodeHash = initialNodeHash;
     for (let idx = 0; idx < proofs.length; idx++) {
         const proofHash = proofs[idx]?.nodeHash || "";
-        nodeHash = decodeHash(proofs[idx]?.side === "left" ? hashPair(proofHash, nodeHash) : hashPair(nodeHash, proofHash));
+        nodeHash = decodeHash(proofs[idx]?.side === "left"
+            ? hashPair(proofHash, nodeHash)
+            : hashPair(nodeHash, proofHash));
     }
     return nodeHash.toString() === rootHash.toString();
 };
 const verifyLogMembershipProof = ({ log, newUnpublishedRootHash, }) => {
-    if (!log.hash || log.membership_proof === undefined || newUnpublishedRootHash === undefined) {
+    if (!log.hash ||
+        log.membership_proof === undefined ||
+        newUnpublishedRootHash === undefined) {
         return "none";
     }
     const proofs = constructProof(log.membership_proof);
@@ -50237,7 +51956,9 @@ const verifyLogMembershipProof = ({ log, newUnpublishedRootHash, }) => {
         : "fail";
 };
 const verifyRecordMembershipProof = ({ record, root, }) => {
-    if (!record.hash || record.membership_proof === undefined || root === undefined) {
+    if (!record.hash ||
+        record.membership_proof === undefined ||
+        root === undefined) {
         return "none";
     }
     const proofs = constructProof(record.membership_proof);
@@ -50279,7 +52000,8 @@ const verifyConsistencyProof = ({ newRootEncHash, prevRootEncHash, consistencyPr
     }
     for (var idx = 0; idx < proofs.length; idx++) {
         const rootProof = proofs[idx];
-        if (!rootProof || !verifyLogProof(rootProof.nodeHash, newRootHash, rootProof.proof)) {
+        if (!rootProof ||
+            !verifyLogProof(rootProof.nodeHash, newRootHash, rootProof.proof)) {
             return false;
         }
     }
@@ -50346,30 +52068,30 @@ const verifySignature = (envelope) => {
  * @extends BaseService
  */
 class AuditService extends base {
+    publishedRoots;
+    prevUnpublishedRootHash;
+    tenantID;
+    /**
+     * Creates a new `AuditService` with the given Pangea API token and
+     * configuration.
+     *
+     * @param token Pangea API token.
+     * @param config Configuration.
+     *
+     * @example
+     * ```js
+     * const config = new PangeaConfig({ domain: "pangea_domain" });
+     * const audit = new AuditService("pangea_token", config);
+     * ```
+     *
+     * @summary Audit
+     */
     constructor(token, config, tenantID, configID) {
         // FIXME: Temporary check to still support configID from PangeaConfig
         if (!configID && config.configID) {
             configID = config.configID;
         }
         super("audit", token, config, configID);
-        Object.defineProperty(this, "publishedRoots", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "prevUnpublishedRootHash", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "tenantID", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
         this.publishedRoots = {};
         this.publishedRoots = {};
         this.prevUnpublishedRootHash = undefined;
@@ -50379,7 +52101,7 @@ class AuditService extends base {
      * @summary Log an entry
      * @description Create a log entry in the Secure Audit Log.
      * @operationId audit_post_v1_log
-     * @param {Object} content - A structured event describing an auditable activity. Supported fields are:
+     * @param event A structured event describing an auditable activity. Supported fields are:
      *   - actor (string): Record who performed the auditable activity.
      *   - action (string): The auditable action that occurred.
      *   - status (string): Record whether or not the activity was successful.
@@ -50390,9 +52112,9 @@ class AuditService extends base {
      *   - new (string|object): The value of a record after it was changed.
      *   - old (string|object): The value of a record before it was changed.
      *   - tenant_id (string): Used to record the tenant associated with this activity.
-     * @param {Object} options - Log options. The following log options are supported:
+     * @param options Log options. The following log options are supported:
      *   - verbose (bool): Return a verbose response, including the canonical event hash and received_at time.
-     * @returns {Promise} - A promise representing an async call to the log endpoint.
+     * @returns A promise representing an async call to the /v1/log endpoint.
      * @example
      * ```js
      * const auditData = {
@@ -50403,11 +52125,100 @@ class AuditService extends base {
      *   message: `Resume denied - sanctioned country from ${clientIp}`,
      *   source: "web",
      * };
+     * const options = { verbose: true };
      *
-     * const logResponse = await audit.log(auditData);
+     * const response = await audit.log(auditData, options);
      * ```
      */
     async log(event, options = {}) {
+        let data = this.getLogEvent(event, options);
+        this.setRequestFields(data, options);
+        const response = await this.post("v1/log", data);
+        this.processLogResponse(response.result, options);
+        return response;
+    }
+    /**
+     * @summary Log multiple entries
+     * @description Create multiple log entries in the Secure Audit Log.
+     * @operationId audit_post_v2_log
+     * @param {Audit.Event[]} events
+     * @param {Audit.LogOptions} options
+     * @returns {Promise} - A promise representing an async call to the /v2/log endpoint.
+     * @example
+     * ```js
+     * const events = [
+     *  { message: "hello world" },
+     * ];
+     * const options = { verbose: true };
+     *
+     * const response = await audit.logBulk(events, options);
+     * ```
+     */
+    async logBulk(events, options = {}) {
+        let logEvents = [];
+        events.forEach((event) => {
+            logEvents.push(this.getLogEvent(event, options));
+        });
+        let data = {
+            events: logEvents,
+            verbose: options.verbose,
+        };
+        options.verify = false; // Bulk API does not verify
+        const response = await this.post("v2/log", data);
+        response.result.results.forEach((result) => {
+            this.processLogResponse(result, options);
+        });
+        return response;
+    }
+    /**
+     * @summary Log multiple entries asynchronously
+     * @description Asynchronously create multiple log entries in the Secure Audit Log.
+     * @operationId audit_post_v2_log_async
+     * @param {Audit.Event[]} events
+     * @param {Audit.LogOptions} options
+     * @returns {Promise} - A promise representing an async call to the /v2/log_async endpoint.
+     * @example
+     * ```js
+     * const events = [
+     *  { message: "hello world" },
+     * ];
+     * const options = { verbose: true };
+     *
+     * const response = await audit.logBulkAsync(events, options);
+     * ```
+     */
+    async logBulkAsync(events, options = {}) {
+        let logEvents = [];
+        events.forEach((event) => {
+            logEvents.push(this.getLogEvent(event, options));
+        });
+        let data = {
+            events: logEvents,
+            verbose: options.verbose,
+        };
+        const postOptions = {
+            pollResultSync: false,
+        };
+        let response;
+        try {
+            response = await this.post("v2/log_async", data, postOptions);
+        }
+        catch (e) {
+            if (e instanceof errors_PangeaErrors.AcceptedRequestException) {
+                // TODO: bad type cast
+                return e.pangeaResponse;
+            }
+            else {
+                throw e;
+            }
+        }
+        options.verify = false; // Bulk API does not verify
+        response.result.results.forEach((result) => {
+            this.processLogResponse(result, options);
+        });
+        return response;
+    }
+    getLogEvent(event, options) {
         // Set tenant_id field if unset
         if (event.tenant_id === undefined && this.tenantID !== undefined) {
             event.tenant_id = this.tenantID;
@@ -50428,6 +52239,9 @@ class AuditService extends base {
             data.signature = signature;
             data.public_key = JSON.stringify(publicKeyInfo);
         }
+        return data;
+    }
+    setRequestFields(data, options) {
         if (options?.verbose) {
             data.verbose = options.verbose;
         }
@@ -50437,25 +52251,20 @@ class AuditService extends base {
                 data.prev_root = this.prevUnpublishedRootHash;
             }
         }
-        const response = await this.post("v1/log", data);
-        return this.processLogResponse(response, options);
     }
-    async processLogResponse(response, options) {
-        if (!response.success) {
-            return response;
-        }
-        let newUnpublishedRootHash = response.result.unpublished_root;
+    processLogResponse(result, options) {
+        let newUnpublishedRootHash = result.unpublished_root;
         if (!options?.skipEventVerification) {
-            this.verifyHash(response.result.envelope, response.result.hash);
-            response.result.signature_verification = verifySignature(response.result.envelope);
+            this.verifyHash(result.envelope, result.hash);
+            result.signature_verification = verifySignature(result.envelope);
         }
         if (options?.verify) {
-            response.result.membership_verification = verifyLogMembershipProof({
-                log: response.result,
+            result.membership_verification = verifyLogMembershipProof({
+                log: result,
                 newUnpublishedRootHash: newUnpublishedRootHash,
             });
-            response.result.consistency_verification = verifyLogConsistencyProof({
-                log: response.result,
+            result.consistency_verification = verifyLogConsistencyProof({
+                log: result,
                 newUnpublishedRoot: newUnpublishedRootHash,
                 prevUnpublishedRoot: this.prevUnpublishedRootHash,
             });
@@ -50463,7 +52272,6 @@ class AuditService extends base {
         if (newUnpublishedRootHash !== undefined) {
             this.prevUnpublishedRootHash = newUnpublishedRootHash;
         }
-        return response;
     }
     verifyHash(envelope, hash) {
         if (envelope === undefined || hash === undefined) {
@@ -50545,6 +52353,77 @@ class AuditService extends base {
         return this.processSearchResponse(response, options);
     }
     /**
+     * @summary Log streaming endpoint
+     * @description This API allows 3rd party vendors (like Auth0) to stream
+     * events to this endpoint where the structure of the payload varies across
+     * different vendors.
+     * @operationId audit_post_v1_log_stream
+     * @param data Event data. The exact schema of this will vary by vendor.
+     * @returns A Pangea response.
+     * @example
+     * ```js
+     * const data = {
+     *   logs: [
+     *     {
+     *       log_id: "some log id",
+     *       data: {
+     *         date: "2024-03-29T17:26:50.193Z",
+     *         type: "some_type",
+     *         description: "Create a log stream",
+     *         client_id: "test client ID",
+     *         ip: "127.0.0.1",
+     *         user_agent: "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0",
+     *         user_id: "test user ID",
+     *       },
+     *     },
+     *   ],
+     * };
+     * const response = await audit.logStream(data);
+     * ```
+     */
+    logStream(data) {
+        return this.post("v1/log_stream", data);
+    }
+    /**
+     * @summary Export from the audit log
+     * @description Bulk export of data from the Secure Audit Log, with optional
+     * filtering.
+     * @operationId audit_post_v1_export
+     * @param request Request parameters.
+     * @returns A Pangea response with a `request_id` that can be used to fetch
+     * the exported results at a later time.
+     * @example
+     * ```js
+     * const exportRes = await auditGeneral.export({ verbose: false });
+     *
+     * // Export may take several dozens of minutes, so polling for the result
+     * // should be done in a loop. That is omitted here for brevity's sake.
+     * try {
+     *   await auditGeneral.pollResult(exportRes.request_id);
+     * } catch (error) {
+     *   if (error instanceof PangeaErrors.AcceptedRequestException) {
+     *     // Retry later.
+     *   }
+     * }
+     *
+     * // Download the result when it's ready.
+     * const downloadRes = await auditGeneral.downloadResults({ request_id: exportRes.request_id });
+     * downloadRes.result.dest_url;
+     * // => https://pangea-runtime.s3.amazonaws.com/audit/xxxxx/search_results_[...]
+     * ```
+     */
+    async export(request) {
+        try {
+            return await this.post("v1/export", request, { pollResultSync: false });
+        }
+        catch (error) {
+            if (error instanceof errors_PangeaErrors.AcceptedRequestException) {
+                return error.pangeaResponse;
+            }
+            throw error;
+        }
+    }
+    /**
      * @summary Tamperproof verification
      * @description Returns current root hash and consistency proof.
      * @operationId audit_post_v1_root
@@ -50561,6 +52440,29 @@ class AuditService extends base {
             data.tree_size = size;
         }
         return this.post("v1/root", data);
+    }
+    /**
+     * @summary Download search results
+     * @description Get all search results as a compressed (gzip) CSV file.
+     * @operationId audit_post_v1_download_results
+     * @param request Request parameters.
+     * @returns URL where search results can be downloaded.
+     * @example
+     * ```js
+     * const response = await audit.downloadResults({
+     *   result_id: "pas_[...]",
+     *   format: Audit.DownloadFormat.CSV,
+     * });
+     * ```
+     */
+    downloadResults(request) {
+        if (!request.request_id && !request.result_id) {
+            throw new TypeError("Must specify one of `request_id` or `result_id`.");
+        }
+        if (request.request_id && request.result_id) {
+            throw new TypeError("Must specify only one of `request_id` or `result_id`.");
+        }
+        return this.post("v1/download_results", request);
     }
     async processSearchResponse(response, options) {
         if (!response.success) {
@@ -50772,26 +52674,11 @@ class UserInvites extends base {
 
 
 class User extends base {
+    profile;
+    authenticators;
+    invites;
     constructor(token, config) {
         super("authn", token, config);
-        Object.defineProperty(this, "profile", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "authenticators", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "invites", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
         this.profile = new UserProfile(token, config);
         this.authenticators = new UserAuthenticators(token, config);
         this.invites = new UserInvites(token, config);
@@ -50871,6 +52758,7 @@ class User extends base {
      *   - email (string): An email address
      *   - id (string): The identity of a user or a service
      *   - disabled (boolean): Disabling a user account will prevent them from logging in.
+     *   - unlock (boolean): Unlock a user account if it has been locked out due to failed Authentication attempts.
      * @returns {Promise<PangeaResponse<AuthN.User.UpdateResult>>} - A promise
      * representing an async call to the endpoint. Available response fields can be found in our
      * [API Documentation](https://pangea.cloud/docs/api/authn/user#/v2/user/update).
@@ -51178,26 +53066,11 @@ class ClientToken extends base {
 
 
 class Client extends base {
+    session;
+    password;
+    clientToken;
     constructor(token, config) {
         super("authn", token, config);
-        Object.defineProperty(this, "session", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "password", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "clientToken", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
         this.session = new ClientSession(token, config);
         this.password = new ClientPassword(token, config);
         this.clientToken = new ClientToken(token, config);
@@ -51401,38 +53274,28 @@ class Agreements extends base {
  * @extends BaseService
  */
 class AuthNService extends base {
+    user;
+    flow;
+    client;
+    session;
+    agreements;
+    /**
+     * Creates a new `AuthNService` with the given Pangea API token and
+     * configuration.
+     *
+     * @param token Pangea API token.
+     * @param config Configuration.
+     *
+     * @example
+     * ```js
+     * const config = new PangeaConfig({ domain: "pangea_domain" });
+     * const authn = new AuthNService("pangea_token", config);
+     * ```
+     *
+     * @summary AuthN
+     */
     constructor(token, config) {
         super("authn", token, config);
-        Object.defineProperty(this, "user", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "flow", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "client", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "session", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "agreements", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
         this.user = new User(token, config);
         this.flow = new Flow(token, config);
         this.client = new Client(token, config);
@@ -51442,6 +53305,161 @@ class AuthNService extends base {
 }
 /* harmony default export */ const authn = (AuthNService);
 
+;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/services/authz.js
+
+/**
+ * AuthZService class provides methods for interacting with the AuthZ Service
+ * @extends BaseService
+ */
+class AuthZService extends base {
+    constructor(token, config) {
+        super("authz", token, config);
+    }
+    /**
+     * @summary Tuple Create
+     * @description Create tuples in the AuthZ Service. The request will fail if there is no schema
+     * or the tuples do not validate against the schema.
+     * @operationId authz_post_v1_tuple_create
+     * @param {AuthZ.TupleCreateRequest} request - An object representing the request to create tuples.
+     *    - {AuthZ.Tuple[]} request.tuples - List of tuples to be created.
+     * @returns {Promise} - A promise representing an async call to the tuple create endpoint.
+     * @example
+     * ```typescript
+     * const response = await authz.tupleCreate({
+     *   tuples: [
+     *     {
+     *       resource: { type: 'folder', id: 'resource1' },
+     *       relation: 'editor',
+     *       subject: { type: 'user', id: 'user1' },
+     *     },
+     *     // Add more tuples as needed
+     *   ],
+     * });
+     * ```
+     */
+    tupleCreate(request) {
+        return this.post("v1/tuple/create", request);
+    }
+    /**
+     * @summary Tuple List
+     * @description List tuples in the AuthZ Service based on provided filters.
+     *
+     * @operationId authz_post_v1_tuple_list
+     * @param {AuthZ.TupleListRequest} request - An object representing the request to list tuples.
+     *    - {AuthZ.TupleListFilter} request.filter - Filter object to narrow down the list of tuples.
+     *    - {number} [request.size] - Maximum results to include in the response. Minimum is `1`.
+     *    - {string} [request.last] - Reflected value from a previous response to obtain the next page of results.
+     *    - {AuthZ.ItemOrder} [request.order] - Order results asc(ending) or desc(ending).
+     *    - {AuthZ.TupleOrderBy} [request.order_by] - Which field to order results by.
+     * @returns {Promise} - A promise representing an async call to the tuple list endpoint.
+     * @example
+     * ```typescript
+     * const response = await authz.tupleList({
+     *   filter: {
+     *     resource: { type: 'folder', id: 'resource1' },
+     *   },
+     *   size: 10,
+     * });
+     * ```
+     */
+    tupleList(request) {
+        return this.post("v1/tuple/list", request);
+    }
+    /**
+     * @summary Tuple Delete
+     * @description Delete tuples in the AuthZ Service based on the provided criteria.
+     *
+     * @operationId authz_post_v1_tuple_delete
+     * @param {AuthZ.TupleDeleteRequest} request - An object representing the request to delete tuples.
+     *    - {AuthZ.Tuple[]} request.tuples - List of tuples to be deleted.
+     * @returns {Promise} - A promise representing an async call to the tuple delete endpoint.
+     * @example
+     * ```typescript
+     * const response = await authz.tupleDelete({
+     *   tuples: [
+     *     {
+     *       resource: { type: 'folder', id: 'resource1' },
+     *       relation: 'owner',
+     *       subject: { type: 'user', id: 'user1' },
+     *     },
+     *     // Add more tuples to be deleted as needed
+     *   ],
+     * });
+     * ```
+     */
+    tupleDelete(request) {
+        return this.post("v1/tuple/delete", request);
+    }
+    /**
+     * @summary Check Authorization
+     * @description Check if a subject is authorized to perform an action on a resource in the AuthZ Service.
+     *
+     * @operationId authz_post_v1_check
+     * @param {AuthZ.CheckRequest} request - An object representing the request to check authorization.
+     *    - {AuthZ.Resource} request.resource - The resource to check authorization on.
+     *    - {string} request.action - The action to check authorization for.
+     *    - {AuthZ.Subject} request.subject - The subject attempting the action.
+     *    - {boolean} [request.debug] - Setting this value to true will provide detailed debug information.
+     *    - {AuthZ.Dictionary} [request.attributes] - Additional attributes for the authorization check.
+     * @returns {Promise} - A promise representing an async call to the authorization check endpoint.
+     * @example
+     * ```typescript
+     * const response = await authz.check({
+     *   resource: { type: 'folder', id: 'resource1' },
+     *   action: 'read',
+     *   subject: { type: 'user', id: 'user1' },
+     *   debug: true,
+     * });
+     * ```
+     */
+    check(request) {
+        return this.post("v1/check", request);
+    }
+    /**
+     * @summary List Resources
+     * @description List resources that a subject is authorized to perform a specified action on in the AuthZ Service.
+     *
+     * @operationId authz_post_v1_list_resources
+     * @param {AuthZ.ListResourcesRequest} request - An object representing the request to list resources.
+     *    - {string} request.type - The type of the resources.
+     *    - {string} request.action - The action to list resources for.
+     *    - {AuthZ.Subject} request.subject - The subject attempting the action.
+     * @returns {Promise} - A promise representing an async call to the list resources endpoint.
+     * @example
+     * ```typescript
+     * const response = await authz.listResources({
+     *   type: 'folder',
+     *   action: 'read',
+     *   subject: { type: 'user', id: 'user1' },
+     * });
+     * ```
+     */
+    listResources(request) {
+        return this.post("v1/list-resources", request);
+    }
+    /**
+     * @summary List Subjects
+     * @description List subjects that are authorized to perform a specified action on a resource in the AuthZ Service.
+     *
+     * @operationId authz_post_v1_list_subjects
+     * @param {AuthZ.ListSubjectsRequest} request - An object representing the request to list subjects.
+     *    - {AuthZ.Resource} request.resource - The resource to list subjects for.
+     *    - {string} request.action - The action to list subjects for.
+     * @returns {Promise} - A promise representing an async call to the list subjects endpoint.
+     * @example
+     * ```typescript
+     * const response = await authz.listSubjects({
+     *   resource: { type: 'folder', id: 'resource1' },
+     *   action: 'read',
+     * });
+     * ```
+     */
+    listSubjects(request) {
+        return this.post("v1/list-subjects", request);
+    }
+}
+/* harmony default export */ const authz = (AuthZService);
+
 ;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/services/embargo.js
 
 /**
@@ -51449,6 +53467,21 @@ class AuthNService extends base {
  * @extends BaseService
  */
 class EmbargoService extends base {
+    /**
+     * Creates a new `EmbargoService` with the given Pangea API token and
+     * configuration.
+     *
+     * @param token Pangea API token.
+     * @param config Configuration.
+     *
+     * @example
+     * ```js
+     * const config = new PangeaConfig({ domain: "pangea_domain" });
+     * const embargo = new EmbargoService("pangea_token", config);
+     * ```
+     *
+     * @summary Embargo
+     */
     constructor(token, config) {
         super("embargo", token, config);
     }
@@ -51497,8 +53530,23 @@ class EmbargoService extends base {
  * @extends BaseService
  */
 class RedactService extends base {
-    constructor(token, config) {
-        super("redact", token, config);
+    /**
+     * Creates a new `RedactService` with the given Pangea API token and
+     * configuration.
+     *
+     * @param token Pangea API token.
+     * @param config Configuration.
+     *
+     * @example
+     * ```js
+     * const config = new PangeaConfig({ domain: "pangea_domain" });
+     * const redact = new RedactService("pangea_token", config);
+     * ```
+     *
+     * @summary Redact
+     */
+    constructor(token, config, options = {}) {
+        super("redact", token, config, options.config_id);
     }
     /**
      * @summary Redact
@@ -51558,8 +53606,6 @@ class RedactService extends base {
 }
 /* harmony default export */ const redact = (RedactService);
 
-;// CONCATENATED MODULE: external "node:fs"
-const external_node_fs_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:fs");
 ;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/services/intel.js
 
 
@@ -51592,6 +53638,21 @@ const hashType = "sha256";
  *    const response = await fileIntel.lookup("142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e", "sha256", options);
  */
 class FileIntelService extends base {
+    /**
+     * Creates a new `FileIntelService` with the given Pangea API token and
+     * configuration.
+     *
+     * @param token Pangea API token.
+     * @param config Configuration.
+     *
+     * @example
+     * ```js
+     * const config = new PangeaConfig({ domain: "pangea_domain" });
+     * const fileIntel = new FileIntelService("pangea_token", config);
+     * ```
+     *
+     * @summary File Intel
+     */
     constructor(token, config) {
         super("file-intel", token, config);
     }
@@ -51628,6 +53689,44 @@ class FileIntelService extends base {
         return this.post("v1/reputation", data);
     }
     /**
+     * @summary Reputation V2
+     * @description Retrieve reputations for a list of file hashes, from a provider, including an optional detailed report.
+     * @operationId file_intel_post_v2_reputation
+     * @param {String[]} hashes - Hashes of each file to be looked up
+     * @param {String} hashType - Type of hash, can be "sha256", "sha" or "md5"
+     * @param {Object} options - An object of optional parameters
+     *   - provider - Provider of the reputation information. ("reversinglabs").
+     *   Default provider defined by the configuration.
+     *   - verbose - Echo back the parameters of the API in the response. Default: verbose=false.
+     *   - raw - Return additional details from the provider. Default: raw=false.
+     * @returns {Promise} - A promise representing an async call to the lookup endpoint.
+     * @example
+     * ```js
+     * const hashes = [
+     *   "142b638c6a60b60c7f9928da4fb85a5a8e1422a9ffdc9ee49e17e56ccca9cf6e",
+     * ];
+     *
+     * const response = await fileIntel.hashReputationBulk(
+     *   hashes,
+     *   "sha256",
+     *   { provider: "reversinglabs" }
+     * );
+     * ```
+     */
+    hashReputationBulk(hashes, hashType, options) {
+        const data = {
+            hashes: hashes,
+            hash_type: hashType,
+        };
+        if (options?.provider)
+            data.provider = options.provider;
+        if (options?.verbose)
+            data.verbose = options.verbose;
+        if (options?.raw)
+            data.raw = options.raw;
+        return this.post("v2/reputation", data);
+    }
+    /**
      * @summary Reputation, from file path
      * @description Retrieve file reputation from a provider, using the file's hash.
      * @operationId file_intel_post_v1_reputation
@@ -51661,6 +53760,33 @@ class FileIntelService extends base {
             data.raw = options.raw;
         return this.post("v1/reputation", data);
     }
+    /**
+     * @summary Reputation, from file paths
+     * @description Retrieve file reputations from a provider, using the files' hashes.
+     * @param {String[]} filepaths - Paths to the files to be looked up
+     * @param {Object} options - An object of optional parameters. Parameters supported:
+     *   - provider {String} - Use reputation data from this provider: "reversinglabs".
+     *   Default provider defined by the configuration.
+     *   - verbose {Boolean} - Echo the API parameters in the response. Default: verbose=false.
+     *   - raw {Boolean} - Include raw data from this provider. Default: raw=false.
+     * @returns {Promise} - A promise representing an async call to the lookup endpoint.
+     * @example
+     * ```js
+     * const response = await fileIntel.filepathReputationBulk(
+     *   ["./myfile1.exe", "./myfile2.exe"],
+     *   { provider: "reversinglabs" }
+     * );
+     * ```
+     */
+    filepathReputationBulk(filepaths, options) {
+        let hashes = [];
+        filepaths.forEach((filepath) => {
+            const content = (0,external_node_fs_namespaceObject.readFileSync)(filepath);
+            const fileHash = (0,external_node_crypto_namespaceObject.createHash)(hashType).update(content).digest("hex");
+            hashes.push(fileHash);
+        });
+        return this.hashReputationBulk(hashes, "sha256", options);
+    }
 }
 /**
  * DomainIntelService class provides methods for interacting with the Domain Intel Service
@@ -51687,6 +53813,21 @@ class FileIntelService extends base {
  *  const response = await domainIntel.lookup("teoghehofuuxo", options);
  */
 class DomainIntelService extends base {
+    /**
+     * Creates a new `DomainIntelService` with the given Pangea API token and
+     * configuration.
+     *
+     * @param token Pangea API token.
+     * @param config Configuration.
+     *
+     * @example
+     * ```js
+     * const config = new PangeaConfig({ domain: "pangea_domain" });
+     * const domainIntel = new DomainIntelService("pangea_token", config);
+     * ```
+     *
+     * @summary Domain Intel
+     */
     constructor(token, config) {
         super("domain-intel", token, config);
     }
@@ -51710,7 +53851,7 @@ class DomainIntelService extends base {
      */
     reputation(domain, options) {
         const data = {
-            domain,
+            domain: domain,
         };
         if (options?.provider)
             data.provider = options.provider;
@@ -51719,6 +53860,36 @@ class DomainIntelService extends base {
         if (options?.raw)
             data.raw = options.raw;
         return this.post("v1/reputation", data);
+    }
+    /**
+     * @summary Bulk reputation check
+     * @description Retrieve reputations for a list of domains, from a provider, including an optional detailed report.
+     * @operationId domain_intel_post_v2_reputation
+     * @param {String[]} domains - The domain list to be looked up.
+     * @param {Object} options - An object of optional parameters. Parameters supported:
+     *   - provider {String} - Use reputation data from these providers: "crowdstrike" or "domaintools".
+     *   Default provider defined by the configuration.
+     *   - verbose {Boolean} - Echo the API parameters in the response. Default: verbose=false.
+     *   - raw {Boolean} - Include raw data from this provider. Default: raw=false.
+     * @returns {Promise} - A promise representing an async call to the lookup endpoint.
+     * @example
+     * ```js
+     * const response = await domainIntel.reputationBulk(
+     *   ["google.com"]
+     * );
+     * ```
+     */
+    reputationBulk(domains, options) {
+        const data = {
+            domains: domains,
+        };
+        if (options?.provider)
+            data.provider = options.provider;
+        if (options?.verbose)
+            data.verbose = options.verbose;
+        if (options?.raw)
+            data.raw = options.raw;
+        return this.post("v2/reputation", data);
     }
     /**
      * @summary WhoIs
@@ -51779,6 +53950,21 @@ class DomainIntelService extends base {
  *    const response = await ipIntel.lookup("93.231.182.110", options);
  */
 class IPIntelService extends base {
+    /**
+     * Creates a new `IPIntelService` with the given Pangea API token and
+     * configuration.
+     *
+     * @param token Pangea API token.
+     * @param config Configuration.
+     *
+     * @example
+     * ```js
+     * const config = new PangeaConfig({ domain: "pangea_domain" });
+     * const ipIntel = new IPIntelService("pangea_token", config);
+     * ```
+     *
+     * @summary IP Intel
+     */
     constructor(token, config) {
         super("ip-intel", token, config);
     }
@@ -51786,9 +53972,9 @@ class IPIntelService extends base {
      * @summary Reputation
      * @description Retrieve a reputation score for an IP address from a provider, including an optional detailed report.
      * @operationId ip_intel_post_v1_reputation
-     * @param {String} ip - Geolocate this IP and check the corresponding country against
+     * @param {String} ip - The IP to be looked up
      * @param {Object} options - An object of optional parameters. Parameters supported:
-     *   - provider {String} - Use reputation data from this provider: "crowdstrike".
+     *   - provider {String} - Use reputation data from this provider.
      *   Default provider defined by the configuration.
      *   - verbose {Boolean} - Echo the API parameters in the response. Default: verbose=false.
      *   - raw {Boolean} - Include raw data from this provider. Default: raw=false.
@@ -51796,7 +53982,7 @@ class IPIntelService extends base {
      * @example
      * ```js
      * const response = await ipIntel.reputation(
-     *   "1.1.1.1",
+     *   "190.28.74.251",
      *   {
      *     provider: "crowdstrike"
      *   }
@@ -51814,6 +54000,39 @@ class IPIntelService extends base {
         if (options?.raw)
             data.raw = options.raw;
         return this.post("v1/reputation", data);
+    }
+    /**
+     * @summary Reputation V2
+     * @description Retrieve reputation scores for IP addresses from a provider, including an optional detailed report.
+     * @operationId ip_intel_post_v2_reputation
+     * @param {String[]} ips - A list of IPs to be looked up
+     * @param {Object} options - An object of optional parameters. Parameters supported:
+     *   - provider {String} - Use reputation data from this provider.
+     *   Default provider defined by the configuration.
+     *   - verbose {Boolean} - Echo the API parameters in the response. Default: verbose=false.
+     *   - raw {Boolean} - Include raw data from this provider. Default: raw=false.
+     * @returns {Promise} - A promise representing an async call to the /reputation endpoint.
+     * @example
+     * ```js
+     * const response = await ipIntel.reputationBulk(
+     *   ["190.28.74.251"],
+     *   {
+     *     provider: "crowdstrike"
+     *   }
+     * );
+     * ```
+     */
+    reputationBulk(ips, options) {
+        const data = {
+            ips,
+        };
+        if (options?.provider)
+            data.provider = options.provider;
+        if (options?.verbose)
+            data.verbose = options.verbose;
+        if (options?.raw)
+            data.raw = options.raw;
+        return this.post("v2/reputation", data);
     }
     /**
      * @summary Geolocate
@@ -51849,6 +54068,39 @@ class IPIntelService extends base {
         return this.post("v1/geolocate", data);
     }
     /**
+     * @summary Geolocate V2
+     * @description Retrieve geolocation information for a list of IP addresses, from a provider, including an optional detailed report.
+     * @operationId ip_intel_post_v2_geolocate
+     * @param {String} ips - The list of IP addresses to be looked up
+     * @param {Object} options - An object of optional parameters. Parameters supported:
+     *   - provider {String} - Use geolocation data from this provider: "digitalelement".
+     *   Default provider defined by the configuration.
+     *   - verbose {Boolean} - Echo the API parameters in the response. Default: verbose=false.
+     *   - raw {Boolean} - Include raw data from this provider. Default: raw=false.
+     * @returns {Promise} - A promise representing an async call to the geolocate endpoint.
+     * @example
+     * ```js
+     * const response = await ipIntel.geolocateBulk(
+     *   ["1.1.1.1"],
+     *   {
+     *     provider: "digitalelement"
+     *   }
+     * );
+     * ```
+     */
+    geolocateBulk(ips, options) {
+        const data = {
+            ips,
+        };
+        if (options?.provider)
+            data.provider = options.provider;
+        if (options?.verbose)
+            data.verbose = options.verbose;
+        if (options?.raw)
+            data.raw = options.raw;
+        return this.post("v2/geolocate", data);
+    }
+    /**
      * @summary Domain
      * @description Retrieve the domain name associated with an IP address.
      * @operationId ip_intel_post_v1_domain
@@ -51882,8 +54134,41 @@ class IPIntelService extends base {
         return this.post("v1/domain", data);
     }
     /**
+     * @summary Domain V2
+     * @description Retrieve the domain names associated with a list of IP addresses.
+     * @operationId ip_intel_post_v2_domain
+     * @param {String} ips - The list of IP addresses to be looked up
+     * @param {Object} options - An object of optional parameters. Parameters supported:
+     *   - provider {String} - Use data from this provider: "digitalelement".
+     *   Default provider defined by the configuration.
+     *   - verbose {Boolean} - Echo the API parameters in the response. Default: verbose=false.
+     *   - raw {Boolean} - Include raw data from this provider. Default: raw=false.
+     * @returns {Promise} - A promise representing an async call to the domain endpoint.
+     * @example
+     * ```js
+     * const response = await ipIntel.getDomainBulk(
+     *   ["1.1.1.1"],
+     *   {
+     *     provider: "digitalelement"
+     *   }
+     * );
+     * ```
+     */
+    getDomainBulk(ips, options) {
+        const data = {
+            ips,
+        };
+        if (options?.provider)
+            data.provider = options.provider;
+        if (options?.verbose)
+            data.verbose = options.verbose;
+        if (options?.raw)
+            data.raw = options.raw;
+        return this.post("v2/domain", data);
+    }
+    /**
      * @summary VPN
-     * @description Determine if an IP address is provided by a VPN service.
+     * @description Determine if an IP address originates from a VPN.
      * @operationId ip_intel_post_v1_vpn
      * @param {String} ip - The IP to be looked up
      * @param {Object} options - An object of optional parameters. Parameters supported:
@@ -51915,8 +54200,41 @@ class IPIntelService extends base {
         return this.post("v1/vpn", data);
     }
     /**
+     * @summary VPN V2
+     * @description Determine which IP addresses originate from a VPN.
+     * @operationId ip_intel_post_v2_vpn
+     * @param {String} ip - The IP to be looked up
+     * @param {Object} options - An object of optional parameters. Parameters supported:
+     *   - provider {String} - Use data from this provider: "digitalelement".
+     *   Default provider defined by the configuration.
+     *   - verbose {Boolean} - Echo the API parameters in the response. Default: verbose=false.
+     *   - raw {Boolean} - Include raw data from this provider. Default: raw=false.
+     * @returns {Promise} - A promise representing an async call to the vpn endpoint.
+     * @example
+     * ```js
+     * const response = await ipIntel.isVPNBulk(
+     *   ["1.1.1.1"],
+     *   {
+     *     provider: "digitalelement"
+     *   }
+     * );
+     * ```
+     */
+    isVPNBulk(ips, options) {
+        const data = {
+            ips,
+        };
+        if (options?.provider)
+            data.provider = options.provider;
+        if (options?.verbose)
+            data.verbose = options.verbose;
+        if (options?.raw)
+            data.raw = options.raw;
+        return this.post("v2/vpn", data);
+    }
+    /**
      * @summary Proxy
-     * @description Determine if an IP address is provided by a proxy service.
+     * @description Determine if an IP address originates from a proxy.
      * @operationId ip_intel_post_v1_proxy
      * @param {String} ip - The IP to be looked up
      * @param {Object} options - An object of optional parameters. Parameters supported:
@@ -51947,6 +54265,39 @@ class IPIntelService extends base {
             data.raw = options.raw;
         return this.post("v1/proxy", data);
     }
+    /**
+     * @summary Proxy V2
+     * @description Determine if an IP address originates from a proxy.
+     * @operationId ip_intel_post_v2_proxy
+     * @param {String} ips - The list of IP addresses to be looked up
+     * @param {Object} options - An object of optional parameters. Parameters supported:
+     *   - provider {String} - Use data from this provider: "digitalelement".
+     *   Default provider defined by the configuration.
+     *   - verbose {Boolean} - Echo the API parameters in the response. Default: verbose=false.
+     *   - raw {Boolean} - Include raw data from this provider. Default: raw=false.
+     * @returns {Promise} - A promise representing an async call to the vpn endpoint.
+     * @example
+     * ```js
+     * const response = await ipIntel.isProxyBulk(
+     *   ["1.1.1.1"],
+     *   {
+     *     provider: "digitalelement"
+     *   }
+     * );
+     * ```
+     */
+    isProxyBulk(ips, options) {
+        const data = {
+            ips,
+        };
+        if (options?.provider)
+            data.provider = options.provider;
+        if (options?.verbose)
+            data.verbose = options.verbose;
+        if (options?.raw)
+            data.raw = options.raw;
+        return this.post("v2/proxy", data);
+    }
 }
 /**
  * URLIntelService class provides methods for interacting with the URL Intel Service
@@ -51972,16 +54323,31 @@ class IPIntelService extends base {
  *    const response = await urlIntel.lookup("http://113.235.101.11:54384", options);
  */
 class URLIntelService extends base {
+    /**
+     * Creates a new `URLIntelService` with the given Pangea API token and
+     * configuration.
+     *
+     * @param token Pangea API token.
+     * @param config Configuration.
+     *
+     * @example
+     * ```js
+     * const config = new PangeaConfig({ domain: "pangea_domain" });
+     * const urlIntel = new URLIntelService("pangea_token", config);
+     * ```
+     *
+     * @summary URL Intel
+     */
     constructor(token, config) {
         super("url-intel", token, config);
     }
     /**
      * @summary Reputation check
      * @description Retrieve a reputation score for a URL from a provider, including an optional detailed report.
-     * @operationId url_intel_post_v1_reputation
+     * @operationId url_intel_post_v2_reputation
      * @param {String} url - The URL to be looked up
      * @param {Object} options - An object of optional parameters. Parameters supported:
-     *   - provider {String} - Use reputation data from this provider: "crowdstrike".
+     *   - provider {String} - Use reputation data from this provider.
      *   Default provider defined by the configuration.
      *   - verbose {Boolean} - Echo the API parameters in the response. Default: verbose=false.
      *   - raw {Boolean} - Include raw data from this provider. Default: raw=false.
@@ -51989,7 +54355,7 @@ class URLIntelService extends base {
      * @example
      * ```js
      * const response = await urlIntel.reputation(
-     *   "http://113.235.101.11:54384,
+     *   "http://113.235.101.11:54384",
      *   {
      *     provider: "crowdstrike"
      *   }
@@ -51998,7 +54364,7 @@ class URLIntelService extends base {
      */
     reputation(url, options) {
         const data = {
-            url,
+            url: url,
         };
         if (options?.provider)
             data.provider = options.provider;
@@ -52007,6 +54373,39 @@ class URLIntelService extends base {
         if (options?.raw)
             data.raw = options.raw;
         return this.post("v1/reputation", data);
+    }
+    /**
+     * @summary Reputation check V2
+     * @description Retrieve reputation scores for URLs, from a provider, including an optional detailed report.
+     * @operationId url_intel_post_v2_reputation
+     * @param {String[]} urls - A list of URLs to be looked up
+     * @param {Object} options - An object of optional parameters. Parameters supported:
+     *   - provider {String} - Use reputation data from this provider.
+     *   Default provider defined by the configuration.
+     *   - verbose {Boolean} - Echo the API parameters in the response. Default: verbose=false.
+     *   - raw {Boolean} - Include raw data from this provider. Default: raw=false.
+     * @returns {Promise} - A promise representing an async call to the lookup endpoint.
+     * @example
+     * ```js
+     * const response = await urlIntel.reputationBulk(
+     *   ["http://113.235.101.11:54384"],
+     *   {
+     *     provider: "crowdstrike"
+     *   }
+     * );
+     * ```
+     */
+    reputationBulk(urls, options) {
+        const data = {
+            urls: urls,
+        };
+        if (options?.provider)
+            data.provider = options.provider;
+        if (options?.verbose)
+            data.verbose = options.verbose;
+        if (options?.raw)
+            data.raw = options.raw;
+        return this.post("v2/reputation", data);
     }
 }
 // User
@@ -52033,32 +54432,65 @@ class URLIntelService extends base {
  *    const response = await userIntel.passwordBreached(Intel.HashType.SHA256, "5baa6", options);
  */
 class UserIntelService extends base {
+    /**
+     * Creates a new `UserIntelService` with the given Pangea API token and
+     * configuration.
+     *
+     * @param token Pangea API token.
+     * @param config Configuration.
+     *
+     * @example
+     * ```js
+     * const config = new PangeaConfig({ domain: "pangea_domain" });
+     * const userIntel = new UserIntelService("pangea_token", config);
+     * ```
+     *
+     * @summary User Intel
+     */
     constructor(token, config) {
         super("user-intel", token, config);
     }
     /**
      * @summary Look up breached users
-     * @description Find out if an email address, username, phone number, or IP address was exposed in a security breach.
+     * @description Determine if an email address, username, phone number, or IP address was exposed in a security breach.
      * @operationId user_intel_post_v1_user_breached
-     * @param {BrechedRequest} request - Request to be send to user/breached endpoint
-     * @param {Object} options - An object of optional parameters. Parameters supported:
-     *   - provider {String} - Use breached data from this provider: "spycloud".
-     *   Default provider defined by the configuration.
-     *   - verbose {Boolean} - Echo the API parameters in the response. Default: verbose=false.
-     *   - raw {Boolean} - Include raw data from this provider. Default: raw=false.
-     * @returns {Promise} - A promise representing an async call to the user/breached endpoint.
+     * @param request Request to send to user/breached endpoint
+     * @returns A promise representing an async call to the user/breached endpoint.
      * @example
-     *  const request = {phone_number: "8005550123", verbose: true, raw: true };
-     *  const response = await userIntel.userBreached(request);
+     * ```js
+     * const response = await userIntel.userBreached({
+     *   phone_number: "8005550123",
+     *   verbose: true,
+     *   raw: true,
+     * });
+     * ```
      */
     userBreached(request) {
         return this.post("v1/user/breached", request);
     }
     /**
+     * @summary Look up breached users V2
+     * @description Determine if an email address, username, phone number, or IP address was exposed in a security breach.
+     * @operationId user_intel_post_v2_user_breached
+     * @param request Request to send to user/breached endpoint
+     * @returns A promise representing an async call to the user/breached endpoint.
+     * @example
+     * ```js
+     * const response = await userIntel.userBreachedBulk({
+     *   phone_numbers: ["8005550123"],
+     *   verbose: true,
+     *   raw: true,
+     * });
+     * ```
+     */
+    userBreachedBulk(request) {
+        return this.post("v2/user/breached", request);
+    }
+    /**
      * @summary Look up breached passwords
-     * @description Find out if a password has been exposed in security breaches by providing a 5 character prefix of the password hash.
+     * @description Determine if a password has been exposed in a security breach using a 5 character prefix of the password hash.
      * @operationId user_intel_post_v1_password_breached
-     * @param {String} hashType - Hash type to be looked up
+     * @param {Intel.HashType} hashType - Hash type to be looked up
      * @param {String} hashPrefix - The prefix of the hash to be looked up.
      * @param {Object} options - An object of optional parameters. Parameters supported:
      *   - provider {String} - Use breached data from this provider: "spycloud".
@@ -52067,8 +54499,17 @@ class UserIntelService extends base {
      *   - raw {Boolean} - Include raw data from this provider. Default: raw=false.
      * @returns {Promise} - A promise representing an async call to the password/breached endpoint.
      * @example
-     * const options = {provider: "spycloud", verbose: true, raw: true };
-     * const response = await userIntel.passwordBreached(Intel.HashType.SHA256, "5baa6", options);
+     * ```js
+     * const response = await userIntel.passwordBreached(
+     *   Intel.HashType.SHA256,
+     *   "5baa6",
+     *   {
+     *     provider: "spycloud",
+     *     verbose: true,
+     *     raw: true
+     *   }
+     * );
+     * ```
      */
     passwordBreached(hashType, hashPrefix, options) {
         const data = {
@@ -52077,6 +54518,39 @@ class UserIntelService extends base {
         };
         Object.assign(data, options);
         return this.post("v1/password/breached", data);
+    }
+    /**
+     * @summary Look up breached passwords V2
+     * @description Find out if a password has been exposed in security breaches by providing a 5 character prefix of the password hash.
+     * @operationId user_intel_post_v2_password_breached
+     * @param {Intel.HashType} hashType - Hash type to be looked up
+     * @param {String[]} hashPrefixes - The list of prefixes of the hash to be looked up.
+     * @param {Object} options - An object of optional parameters. Parameters supported:
+     *   - provider {String} - Use breached data from this provider: "spycloud".
+     *   Default provider defined by the configuration.
+     *   - verbose {Boolean} - Echo the API parameters in the response. Default: verbose=false.
+     *   - raw {Boolean} - Include raw data from this provider. Default: raw=false.
+     * @returns {Promise} - A promise representing an async call to the password/breached endpoint.
+     * @example
+     * ```js
+     * const response = await userIntel.passwordBreachedBulk(
+     *   Intel.HashType.SHA256,
+     *   ["5baa6"],
+     *   {
+     *     provider: "spycloud",
+     *     verbose: true,
+     *     raw: true
+     *   }
+     * );
+     * ```
+     */
+    passwordBreachedBulk(hashType, hashPrefixes, options) {
+        const data = {
+            hash_type: hashType,
+            hash_prefixes: hashPrefixes,
+        };
+        Object.assign(data, options);
+        return this.post("v2/password/breached", data);
     }
     static isPasswordBreached(response, hash) {
         if (response.result.raw_data === undefined) {
@@ -52107,6 +54581,21 @@ class UserIntelService extends base {
  * @extends BaseService
  */
 class VaultService extends base {
+    /**
+     * Creates a new `VaultService` with the given Pangea API token and
+     * configuration.
+     *
+     * @param token Pangea API token.
+     * @param config Configuration.
+     *
+     * @example
+     * ```js
+     * const config = new PangeaConfig({ domain: "pangea_domain" });
+     * const vault = new VaultService("pangea_token", config);
+     * ```
+     *
+     * @summary Vault
+     */
     constructor(token, config) {
         super("vault", token, config);
     }
@@ -52191,7 +54680,7 @@ class VaultService extends base {
      * @summary List
      * @description Look up a list of secrets, keys and folders, and their associated information.
      * @operationId vault_post_v1_list
-     * @param {Object} options - The following options are supported:
+     * @param {Vault.ListOptions} options - The following options are supported:
      *   - filter (object): A set of filters to help you customize your search. Examples:
      *     `"folder": "/tmp"`, `"tags": "personal"`, `"name__contains": "xxx"`, `"created_at__gt": "2020-02-05T10:00:00Z"`
      *     For metadata, use: `"metadata_": "<value>"`
@@ -52404,7 +54893,7 @@ class VaultService extends base {
     /**
      * @summary Symmetric generate
      * @description Generate a symmetric key.
-     * @operationId vault_post_v1_key_generate 1
+     * @operationId vault_post_v1_key_generate 2
      * @param {Vault.SymmetricAlgorithm} algorithm - The algorithm of the key. Options
      * [listed in Vault documentation](https://pangea.cloud/docs/vault/manage-keys/generate-a-key#generating-a-symmetric-key).
      * @param {Vault.KeyPurpose} purpose - The purpose of this key
@@ -52450,7 +54939,7 @@ class VaultService extends base {
     /**
      * @summary Asymmetric generate
      * @description Generate an asymmetric key.
-     * @operationId vault_post_v1_key_generate 2
+     * @operationId vault_post_v1_key_generate 1
      * @param {Vault.AsymmetricAlgorithm} algorithm - The algorithm of the key. Options
      * [listed in Vault documentation](https://pangea.cloud/docs/vault/manage-keys/generate-a-key#generating-asymmetric-key-pairs).
      * @param {Vault.KeyPurpose} purpose - The purpose of this key
@@ -52710,7 +55199,6 @@ class VaultService extends base {
      *   "pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
      *   "lJkk0gCLux+Q+rPNqLPEYw=="
      *   "FfWuT2Mq/+cxa7wIugfhzi7ktZxVf926idJNgBDCysF/knY9B7M6wxqHMMPDEBs86D8OsEGuED21y3J7IGOpCQ==",
-     *   1
      * );
      * ```
      */
@@ -52804,12 +55292,68 @@ class VaultService extends base {
     async folderCreate(request) {
         return this.post("v1/folder/create", request);
     }
+    /**
+     * @summary Encrypt structured
+     * @description Encrypt parts of a JSON object.
+     * @operationId vault_post_v1_key_encrypt_structured
+     * @param request Request parameters.
+     * @returns A `Promise` of the encrypted result.
+     * @example
+     * ```js
+     * const response = await vault.encryptStructured({
+     *   id: "pvi_[...]",
+     *   structured_data: {"field1": [1, 2, "true", "false"], "field2": "data2"},
+     *   filter: "$.field1[2:4]",
+     * });
+     * ```
+     */
+    async encryptStructured(request) {
+        return this.post("v1/key/encrypt/structured", request);
+    }
+    /**
+     * @summary Decrypt structured
+     * @description Decrypt parts of a JSON object.
+     * @operationId vault_post_v1_key_decrypt_structured
+     * @param request Request parameters.
+     * @returns A `Promise` of the decrypted result.
+     * @example
+     * ```js
+     * const response = await vault.decryptStructured({
+     *   id: "pvi_[...]",
+     *   structured_data: {"field1": [1, 2, "[...]", "[...]"], "field2": "data2"},
+     *   filter: "$.field1[2:4]",
+     * });
+     * ```
+     */
+    async decryptStructured(request) {
+        return this.post("v1/key/decrypt/structured", request);
+    }
 }
 /* harmony default export */ const vault = (VaultService);
 
 ;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/services/file_scan.js
 
+
+
+
+
+
 class FileScanService extends base {
+    /**
+     * Creates a new `FileScanService` with the given Pangea API token and
+     * configuration.
+     *
+     * @param token Pangea API token.
+     * @param config Configuration.
+     *
+     * @example
+     * ```js
+     * const config = new PangeaConfig({ domain: "pangea_domain" });
+     * const client = new FileScanService("pangea_token", config);
+     * ```
+     *
+     * @summary File Scan
+     */
     constructor(token, config) {
         super("file-scan", token, config);
     }
@@ -52827,10 +55371,82 @@ class FileScanService extends base {
      * const response = await client.fileScan(request, "./path/to/file.pdf");
      * ```
      */
-    fileScan(request, filepath, options = {
+    fileScan(request, file, // This param is optional. It should be null when using the source_url method
+    options = {
         pollResultSync: true,
     }) {
-        return this.postMultipart("v1/scan", request, filepath, options);
+        let fsData = {};
+        if (request.transfer_method === types_TransferMethod.PUT_URL) {
+            throw new errors_PangeaErrors.PangeaError(`${request.transfer_method} not supported in this function. Use getUploadURL() instead.`);
+        }
+        let postFile = undefined;
+        let files = undefined;
+        if (typeof file === "string") {
+            postFile = {
+                name: "file",
+                file: file,
+            };
+        }
+        else {
+            postFile = file;
+        }
+        if (postFile) {
+            files = {
+                file: postFile,
+            };
+        }
+        const postOptions = {
+            pollResultSync: options.pollResultSync,
+            files: files,
+        };
+        if ((!request.transfer_method ||
+            request.transfer_method === types_TransferMethod.POST_URL) &&
+            postFile) {
+            fsData = getFileUploadParams(postFile.file);
+        }
+        const fullRequest = {
+            ...fsData,
+            ...request,
+        };
+        return this.post("v1/scan", fullRequest, postOptions);
+    }
+    // TODO: Docs
+    async requestUploadURL(request, options = {}) {
+        if (request.transfer_method === types_TransferMethod.POST_URL &&
+            !options.params) {
+            throw new errors_PangeaErrors.PangeaError(`If transfer_method is ${types_TransferMethod.POST_URL} need to set options.params`);
+        }
+        let fsParams = {};
+        if (request.transfer_method === types_TransferMethod.POST_URL && options.params) {
+            fsParams = options.params;
+        }
+        const fullRequest = {
+            ...fsParams,
+            ...request,
+        };
+        return await this.request.requestPresignedURL("v1/scan", fullRequest);
+    }
+}
+class FileScanUploader {
+    serviceName = "FileScanFileUploader";
+    request_ = undefined;
+    constructor() { }
+    get request() {
+        if (this.request_) {
+            return this.request_;
+        }
+        this.request_ = new PangeaRequest(this.serviceName, "unusedtoken", new PangeaConfig());
+        return this.request_;
+    }
+    // TODO: Docs
+    async uploadFile(url, fileData, options) {
+        if (!options.transfer_method ||
+            options.transfer_method === TransferMethod.PUT_URL) {
+            await this.request.putPresignedURL(url, fileData);
+        }
+        else if (options.transfer_method === TransferMethod.POST_URL) {
+            await this.request.postPresignedURL(url, fileData);
+        }
     }
 }
 
@@ -52843,9 +55459,11 @@ class FileScanService extends base {
 
 
 
+
 /* harmony default export */ const services = ({
     AuditService: audit,
     AuthNService: authn,
+    AuthZService: authz,
     EmbargoService: embargo,
     BaseService: base,
     RedactService: redact,
@@ -52868,11 +55486,13 @@ class FileScanService extends base {
 // Export all errors
 
 
+
 const dist_PangeaConfig = dist_config;
 const dist_PangeaRequest = (/* unused pure expression or super */ null && (_PangeaRequest));
 const dist_PangeaResponse = (/* unused pure expression or super */ null && (_PangeaResponse));
 const dist_AuditService = services.AuditService;
 const dist_AuthNService = services.AuthNService;
+const dist_AuthZService = services.AuthZService;
 const dist_BaseService = services.BaseService;
 const dist_EmbargoService = services.EmbargoService;
 const dist_RedactService = services.RedactService;
