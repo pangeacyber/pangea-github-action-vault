@@ -39533,7 +39533,7 @@ var types_Vault;
     })(ItemType = Vault.ItemType || (Vault.ItemType = {}));
     let ItemState;
     (function (ItemState) {
-        ItemState["ENABLED"] = "ENABLED";
+        ItemState["ENABLED"] = "enabled";
         ItemState["DISABLED"] = "disabled";
     })(ItemState = Vault.ItemState || (Vault.ItemState = {}));
     let ItemVersionState;
@@ -39700,7 +39700,7 @@ var AuthZ;
 
 ;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/config.js
 
-const version = "3.10.0";
+const version = "3.11.0";
 /** Configuration for a Pangea service client. */
 class config_PangeaConfig {
     /** Pangea API domain. */
@@ -39744,7 +39744,7 @@ class config_PangeaConfig {
 
 ;// CONCATENATED MODULE: external "node:fs"
 const external_node_fs_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:fs");
-;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/node_modules/form-data-encoder/lib/index.js
+;// CONCATENATED MODULE: ./node_modules/form-data-encoder/lib/index.js
 var __accessCheck = (obj, member, msg) => {
   if (!member.has(obj))
     throw TypeError("Cannot " + msg);
@@ -41112,7 +41112,7 @@ var errors_PangeaErrors;
     class APIError extends Error {
         response;
         constructor(message, response) {
-            super(message);
+            super(`${message}\n${JSON.stringify(errorToString(response), null, 2)}`);
             this.name = "PangeanAPIError";
             this.response = response;
         }
@@ -41126,15 +41126,7 @@ var errors_PangeaErrors;
             return this.response.result?.errors || [];
         }
         toString() {
-            let ret = `Summary: ${this.response.summary}\n`;
-            ret += `status: ${this.response.status}\n`;
-            ret += `request_id: ${this.response.request_id}\n`;
-            ret += `request_time: ${this.response.request_time}\n`;
-            ret += `response_time: ${this.response.response_time}\n`;
-            (this.response.result?.errors || []).forEach((ef) => {
-                ret += `\t${ef.source} ${ef.code}: ${ef.detail}\n`;
-            });
-            return ret;
+            return errorToString(this.response);
         }
     }
     PangeaErrors.APIError = APIError;
@@ -41251,6 +41243,17 @@ var errors_PangeaErrors;
         }
     }
     PangeaErrors.ForbiddenVaultOperation = ForbiddenVaultOperation;
+    function errorToString(response) {
+        let ret = `Summary: ${response.summary}\n`;
+        ret += `status: ${response.status}\n`;
+        ret += `request_id: ${response.request_id}\n`;
+        ret += `request_time: ${response.request_time}\n`;
+        ret += `response_time: ${response.response_time}\n`;
+        (response.result?.errors || []).forEach((ef) => {
+            ret += `\t${ef.source} ${ef.code}: ${ef.detail}\n`;
+        });
+        return ret;
+    }
 })(errors_PangeaErrors || (errors_PangeaErrors = {}));
 
 ;// CONCATENATED MODULE: external "node:path"
@@ -41297,7 +41300,7 @@ function parse(multipartBodyBuffer, boundary) {
     let currentPartHeaders = [];
     for (let i = 0; i < multipartBodyBuffer.length; i++) {
         const oneByte = multipartBodyBuffer[i] ?? 0;
-        const prevByte = i > 0 ? multipartBodyBuffer[i - 1] ?? 0 : null;
+        const prevByte = i > 0 ? (multipartBodyBuffer[i - 1] ?? 0) : null;
         // 0x0a => \n
         // 0x0d => \r
         const newLineDetected = oneByte === 0x0a && prevByte === 0x0d;
@@ -41959,7 +41962,23 @@ class BaseService {
         if (!token)
             throw new Error("A token is required");
         this.serviceName = serviceName;
-        this.token = token;
+        if (typeof token === "string") {
+            this.token = token;
+        }
+        else {
+            if (token.type !== "pangea_token")
+                throw new Error(`Token passed as vault secret is not of type 'pangea_token', but of type '${token.type}'`);
+            if (token.item_state !== "enabled")
+                throw new Error("Token passed as vault secret is not currently enabled");
+            const currentVersion = token.current_version;
+            if (!currentVersion)
+                throw new Error("Token passed as vault secret does not have a current version");
+            if (currentVersion.state !== "active")
+                throw new Error("Token passed as vault secret is not currently active");
+            if (!currentVersion.secret)
+                throw new Error("Vault secret field is not populated, cannot pass as token");
+            this.token = currentVersion.secret;
+        }
         this.configID = configID;
         this.config = new esm_config({ ...config }) || new esm_config();
     }
@@ -42199,15 +42218,27 @@ function orderKeysRecursive(obj) {
             value[1] = orderKeysRecursive(value[1]);
         }
     });
-    const orderedObj = Object.fromEntries(orderedEntries);
-    return orderedObj;
+    return Object.fromEntries(orderedEntries);
 }
-var replacer = function (key, value) {
-    if (this[key] instanceof Date) {
-        return this[key].toISOString();
+function isAscii(c) {
+    return c.codePointAt(0) <= 127;
+}
+function replacer(_key, value) {
+    if (value instanceof Date) {
+        return value.toISOString();
+    }
+    if (typeof value === "string") {
+        return [...value]
+            .map((c) => isAscii(c)
+            ? c // Do nothing.
+            : c
+                .split("") // Split into code points.
+                .map((p) => `\\u${p.codePointAt(0).toString(16)}`)
+                .join(""))
+            .join("");
     }
     return value;
-};
+}
 function eventOrderAndStringifySubfields(obj) {
     const orderedEntries = Object.entries(obj).sort((a, b) => a[0].localeCompare(b[0]));
     orderedEntries.forEach((value) => {
@@ -42218,8 +42249,7 @@ function eventOrderAndStringifySubfields(obj) {
             value[1] = JSON.stringify(value[1], replacer); // This is to stringify JSON objects in the same way server do
         }
     });
-    const orderedObj = Object.fromEntries(orderedEntries);
-    return orderedObj;
+    return Object.fromEntries(orderedEntries);
 }
 function canonicalize(obj) {
     return JSON.stringify(orderKeysRecursive(obj), replacer);
@@ -43024,7 +43054,7 @@ class UserProfile extends base {
      * response fields can be found in our [API Documentation](https://pangea.cloud/docs/api/authn/user#/v2/user/profile/get).
      * @example
      * ```js
-     * const response = await authn.user.getProfile(
+     * const response = await authn.user.profile.getProfile(
      *   {
      *     email: "joe.user@email.com",
      *   }
