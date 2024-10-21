@@ -17032,6 +17032,153 @@ exports.isPlainObject = isPlainObject;
 
 /***/ }),
 
+/***/ 1533:
+/***/ ((module) => {
+
+module.exports = serialize
+
+/**
+ * @param {unknown} value
+ * @returns {string}
+ */
+function serialize(value) {
+  const type = typeof value
+
+  switch (type) {
+    case 'undefined':
+    case 'symbol':
+      return serializeUndefined()
+    case 'boolean':
+      return serializeBoolean(value)
+    case 'number':
+      return serializeNumber(value)
+    case 'string':
+      return serializeString(value)
+    case 'function':
+      return serializeFunction(value)
+    case 'object':
+      break
+    default:
+      return JSON.stringify(value)
+  }
+
+  if (value === null) {
+    return JSON.stringify(value)
+  }
+
+  if (value.toJSON instanceof Function) {
+    return serialize(value.toJSON())
+  }
+
+  if (Array.isArray(value)) {
+    return serializeArray(value)
+  }
+
+  return serializeObject(value)
+}
+
+function serializeUndefined() {
+  return 'null'
+}
+
+function serializeBoolean(bool) {
+  if (bool) return 'true'
+  else return 'false'
+}
+
+function serializeNumber(num) {
+  if (isNaN(num)) {
+    throw new Error('NaN is not allowed')
+  }
+  if (!isFinite(num)) {
+    throw new Error('Infinity is not allowed')
+  }
+  return JSON.stringify(num)
+}
+
+// https://github.com/BridgeAR/safe-stable-stringify/blob/26dc000/index.js#L22-L33
+
+// eslint-disable-next-line no-control-regex
+const stringEscapeSequencesRegExp =
+  /[\u0000-\u001f\u0022\u005c\ud800-\udfff]|[\ud800-\udbff](?![\udc00-\udfff])|(?:[^\ud800-\udbff]|^)[\udc00-\udfff]/
+
+function serializeString(str) {
+  if (!isWellFormed(str)) {
+    throw new Error(
+      'Strings must be valid Unicode and not contain any surrogate pairs',
+    )
+  }
+  if (str.length < 5000 && !stringEscapeSequencesRegExp.test(str)) {
+    return '"' + str + '"'
+  }
+  return JSON.stringify(str)
+}
+
+function serializeFunction(fn) {
+  return JSON.stringify(fn)
+}
+
+function serializeArray(arr) {
+  let str = '['
+  const length = arr.length
+  for (let i = 0; i < length; i++) {
+    const val = arr[i]
+    if (i !== 0) str += ','
+    str += serialize(val)
+  }
+  return str + ']'
+}
+
+function serializeObject(obj) {
+  const sortedKeys = sort(Object.keys(obj))
+  let str = '{'
+  const length = sortedKeys.length
+  for (let i = 0; i < length; i++) {
+    const key = sortedKeys[i]
+    const val = obj[key]
+    if (val === undefined || typeof val === 'symbol') {
+      continue
+    }
+    if (i !== 0 && str.length !== 0) {
+      str += ','
+    }
+    str += serialize(key) + ':' + serialize(val)
+  }
+  return str + '}'
+}
+
+// https://github.com/BridgeAR/safe-stable-stringify/blob/26dc000/index.js#L35-L51
+function sort(array) {
+  // Insertion sort is very efficient for small input sizes but it has a bad
+  // worst case complexity. Thus, use native array sort for bigger values.
+  if (array.length > 2e2) {
+    return array.sort()
+  }
+  for (let i = 1; i < array.length; i++) {
+    const currentValue = array[i]
+    let position = i
+    while (position !== 0 && array[position - 1] > currentValue) {
+      array[position] = array[position - 1]
+      position--
+    }
+    array[position] = currentValue
+  }
+  return array
+}
+
+const stringSurrogateRegex = /\p{Surrogate}/u
+
+function isWellFormed(str) {
+  if (typeof String.prototype.isWellFormed === 'function') {
+    return str.isWellFormed()
+  }
+
+  return !stringSurrogateRegex.test(str)
+}
+
+
+/***/ }),
+
 /***/ 7071:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -40251,6 +40398,7 @@ var types_Vault;
     (function (ExportEncryptionAlgorithm) {
         /** RSA 4096-bit key, OAEP padding, SHA512 digest. */
         ExportEncryptionAlgorithm["RSA4096_OAEP_SHA512"] = "RSA-OAEP-4096-SHA512";
+        ExportEncryptionAlgorithm["RSA4096_NO_PADDING_KEM"] = "RSA-NO-PADDING-4096-KEM";
     })(ExportEncryptionAlgorithm = Vault.ExportEncryptionAlgorithm || (Vault.ExportEncryptionAlgorithm = {}));
     let ItemType;
     (function (ItemType) {
@@ -40258,6 +40406,9 @@ var types_Vault;
         ItemType["SYMMETRIC_KEY"] = "symmetric_key";
         ItemType["SECRET"] = "secret";
         ItemType["PANGEA_TOKEN"] = "pangea_token";
+        ItemType["FOLDER"] = "folder";
+        ItemType["PANGEA_CLIENT_SECRET"] = "pangea_client_secret";
+        ItemType["PANGEA_PLATFORM_CLIENT_SECRET"] = "pangea_platform_client_secret";
     })(ItemType = Vault.ItemType || (Vault.ItemType = {}));
     let ItemState;
     (function (ItemState) {
@@ -40307,6 +40458,11 @@ var types_Vault;
         /** Numeric (0-9). */
         TransformAlphabet["NUMERIC"] = "numeric";
     })(TransformAlphabet = Vault.TransformAlphabet || (Vault.TransformAlphabet = {}));
+    let ExportEncryptionType;
+    (function (ExportEncryptionType) {
+        ExportEncryptionType["ASYMMETRIC"] = "asymmetric";
+        ExportEncryptionType["KEM"] = "kem";
+    })(ExportEncryptionType = Vault.ExportEncryptionType || (Vault.ExportEncryptionType = {}));
     let Secret;
     (function (Secret) {
         Secret.Algorithm = {
@@ -40425,10 +40581,208 @@ var AuthZ;
         TupleOrderBy["SUBJECT_ACTION"] = "subject_action";
     })(TupleOrderBy = AuthZ.TupleOrderBy || (AuthZ.TupleOrderBy = {}));
 })(AuthZ || (AuthZ = {}));
+var Share;
+(function (Share) {
+    let FileFormat;
+    (function (FileFormat) {
+        FileFormat["F3G2"] = "3G2";
+        FileFormat["F3GP"] = "3GP";
+        FileFormat["F3MF"] = "3MF";
+        FileFormat["F7Z"] = "7Z";
+        FileFormat["A"] = "A";
+        FileFormat["AAC"] = "AAC";
+        FileFormat["ACCDB"] = "ACCDB";
+        FileFormat["AIFF"] = "AIFF";
+        FileFormat["AMF"] = "AMF";
+        FileFormat["AMR"] = "AMR";
+        FileFormat["APE"] = "APE";
+        FileFormat["ASF"] = "ASF";
+        FileFormat["ATOM"] = "ATOM";
+        FileFormat["AU"] = "AU";
+        FileFormat["AVI"] = "AVI";
+        FileFormat["AVIF"] = "AVIF";
+        FileFormat["BIN"] = "BIN";
+        FileFormat["BMP"] = "BMP";
+        FileFormat["BPG"] = "BPG";
+        FileFormat["BZ2"] = "BZ2";
+        FileFormat["CAB"] = "CAB";
+        FileFormat["CLASS"] = "CLASS";
+        FileFormat["CPIO"] = "CPIO";
+        FileFormat["CRX"] = "CRX";
+        FileFormat["CSV"] = "CSV";
+        FileFormat["DAE"] = "DAE";
+        FileFormat["DBF"] = "DBF";
+        FileFormat["DCM"] = "DCM";
+        FileFormat["DEB"] = "DEB";
+        FileFormat["DJVU"] = "DJVU";
+        FileFormat["DLL"] = "DLL";
+        FileFormat["DOC"] = "DOC";
+        FileFormat["DOCX"] = "DOCX";
+        FileFormat["DWG"] = "DWG";
+        FileFormat["EOT"] = "EOT";
+        FileFormat["EPUB"] = "EPUB";
+        FileFormat["EXE"] = "EXE";
+        FileFormat["FDF"] = "FDF";
+        FileFormat["FITS"] = "FITS";
+        FileFormat["FLAC"] = "FLAC";
+        FileFormat["FLV"] = "FLV";
+        FileFormat["GBR"] = "GBR";
+        FileFormat["GEOJSON"] = "GEOJSON";
+        FileFormat["GIF"] = "GIF";
+        FileFormat["GLB"] = "GLB";
+        FileFormat["GML"] = "GML";
+        FileFormat["GPX"] = "GPX";
+        FileFormat["GZ"] = "GZ";
+        FileFormat["HAR"] = "HAR";
+        FileFormat["HDR"] = "HDR";
+        FileFormat["HEIC"] = "HEIC";
+        FileFormat["HEIF"] = "HEIF";
+        FileFormat["HTML"] = "HTML";
+        FileFormat["ICNS"] = "ICNS";
+        FileFormat["ICO"] = "ICO";
+        FileFormat["ICS"] = "ICS";
+        FileFormat["ISO"] = "ISO";
+        FileFormat["JAR"] = "JAR";
+        FileFormat["JP2"] = "JP2";
+        FileFormat["JPF"] = "JPF";
+        FileFormat["JPG"] = "JPG";
+        FileFormat["JPM"] = "JPM";
+        FileFormat["JS"] = "JS";
+        FileFormat["JSON"] = "JSON";
+        FileFormat["JXL"] = "JXL";
+        FileFormat["JXR"] = "JXR";
+        FileFormat["KML"] = "KML";
+        FileFormat["LIT"] = "LIT";
+        FileFormat["LNK"] = "LNK";
+        FileFormat["LUA"] = "LUA";
+        FileFormat["LZ"] = "LZ";
+        FileFormat["M3U"] = "M3U";
+        FileFormat["M4A"] = "M4A";
+        FileFormat["MACHO"] = "MACHO";
+        FileFormat["MDB"] = "MDB";
+        FileFormat["MIDI"] = "MIDI";
+        FileFormat["MKV"] = "MKV";
+        FileFormat["MOBI"] = "MOBI";
+        FileFormat["MOV"] = "MOV";
+        FileFormat["MP3"] = "MP3";
+        FileFormat["MP4"] = "MP4";
+        FileFormat["MPC"] = "MPC";
+        FileFormat["MPEG"] = "MPEG";
+        FileFormat["MQV"] = "MQV";
+        FileFormat["MRC"] = "MRC";
+        FileFormat["MSG"] = "MSG";
+        FileFormat["MSI"] = "MSI";
+        FileFormat["NDJSON"] = "NDJSON";
+        FileFormat["NES"] = "NES";
+        FileFormat["ODC"] = "ODC";
+        FileFormat["ODF"] = "ODF";
+        FileFormat["ODG"] = "ODG";
+        FileFormat["ODP"] = "ODP";
+        FileFormat["ODS"] = "ODS";
+        FileFormat["ODT"] = "ODT";
+        FileFormat["OGA"] = "OGA";
+        FileFormat["OGV"] = "OGV";
+        FileFormat["OTF"] = "OTF";
+        FileFormat["OTG"] = "OTG";
+        FileFormat["OTP"] = "OTP";
+        FileFormat["OTS"] = "OTS";
+        FileFormat["OTT"] = "OTT";
+        FileFormat["OWL"] = "OWL";
+        FileFormat["P7S"] = "P7S";
+        FileFormat["PAT"] = "PAT";
+        FileFormat["PDF"] = "PDF";
+        FileFormat["PHP"] = "PHP";
+        FileFormat["PL"] = "PL";
+        FileFormat["PNG"] = "PNG";
+        FileFormat["PPT"] = "PPT";
+        FileFormat["PPTX"] = "PPTX";
+        FileFormat["PS"] = "PS";
+        FileFormat["PSD"] = "PSD";
+        FileFormat["PUB"] = "PUB";
+        FileFormat["PY"] = "PY";
+        FileFormat["QCP"] = "QCP";
+        FileFormat["RAR"] = "RAR";
+        FileFormat["RMVB"] = "RMVB";
+        FileFormat["RPM"] = "RPM";
+        FileFormat["RSS"] = "RSS";
+        FileFormat["RTF"] = "RTF";
+        FileFormat["SHP"] = "SHP";
+        FileFormat["SHX"] = "SHX";
+        FileFormat["SO"] = "SO";
+        FileFormat["SQLITE"] = "SQLITE";
+        FileFormat["SRT"] = "SRT";
+        FileFormat["SVG"] = "SVG";
+        FileFormat["SWF"] = "SWF";
+        FileFormat["SXC"] = "SXC";
+        FileFormat["TAR"] = "TAR";
+        FileFormat["TCL"] = "TCL";
+        FileFormat["TCX"] = "TCX";
+        FileFormat["TIFF"] = "TIFF";
+        FileFormat["TORRENT"] = "TORRENT";
+        FileFormat["TSV"] = "TSV";
+        FileFormat["TTC"] = "TTC";
+        FileFormat["TTF"] = "TTF";
+        FileFormat["TXT"] = "TXT";
+        FileFormat["VCF"] = "VCF";
+        FileFormat["VOC"] = "VOC";
+        FileFormat["VTT"] = "VTT";
+        FileFormat["WARC"] = "WARC";
+        FileFormat["WASM"] = "WASM";
+        FileFormat["WAV"] = "WAV";
+        FileFormat["WEBM"] = "WEBM";
+        FileFormat["WEBP"] = "WEBP";
+        FileFormat["WOFF"] = "WOFF";
+        FileFormat["WOFF2"] = "WOFF2";
+        FileFormat["X3D"] = "X3D";
+        FileFormat["XAR"] = "XAR";
+        FileFormat["XCF"] = "XCF";
+        FileFormat["XFDF"] = "XFDF";
+        FileFormat["XLF"] = "XLF";
+        FileFormat["XLS"] = "XLS";
+        FileFormat["XLSX"] = "XLSX";
+        FileFormat["XML"] = "XML";
+        FileFormat["XPM"] = "XPM";
+        FileFormat["XZ"] = "XZ";
+        FileFormat["ZIP"] = "ZIP";
+        FileFormat["ZST"] = "ZST";
+    })(FileFormat = Share.FileFormat || (Share.FileFormat = {}));
+    let ArchiveFormat;
+    (function (ArchiveFormat) {
+        ArchiveFormat["TAR"] = "tar";
+        ArchiveFormat["ZIP"] = "zip";
+    })(ArchiveFormat = Share.ArchiveFormat || (Share.ArchiveFormat = {}));
+    let LinkType;
+    (function (LinkType) {
+        LinkType["UPLOAD"] = "upload";
+        LinkType["DOWNLOAD"] = "download";
+        LinkType["EDITOR"] = "editor";
+    })(LinkType = Share.LinkType || (Share.LinkType = {}));
+    let AuthenticatorType;
+    (function (AuthenticatorType) {
+        AuthenticatorType["EMAIL_OTP"] = "email_otp";
+        AuthenticatorType["PASSWORD"] = "password";
+        AuthenticatorType["SMS_OTP"] = "sms_otp";
+        AuthenticatorType["SOCIAL"] = "social";
+    })(AuthenticatorType = Share.AuthenticatorType || (Share.AuthenticatorType = {}));
+    let ItemOrder;
+    (function (ItemOrder) {
+        ItemOrder["ASC"] = "asc";
+        ItemOrder["DESC"] = "desc";
+    })(ItemOrder = Share.ItemOrder || (Share.ItemOrder = {}));
+    let ItemOrderBy;
+    (function (ItemOrderBy) {
+        ItemOrderBy["ID"] = "id";
+        ItemOrderBy["CREATED_AT"] = "created_at";
+        ItemOrderBy["NAME"] = "name";
+        ItemOrderBy["PARENT_ID"] = "parent_id";
+        ItemOrderBy["TYPE"] = "type";
+        ItemOrderBy["UPDATED_AT"] = "updated_at";
+    })(ItemOrderBy = Share.ItemOrderBy || (Share.ItemOrderBy = {}));
+})(Share || (Share = {}));
 
 ;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/config.js
 
-const version = "3.11.0";
+const version = "4.1.0";
 /** Configuration for a Pangea service client. */
 class config_PangeaConfig {
     /** Pangea API domain. */
@@ -40470,6 +40824,8 @@ class config_PangeaConfig {
 }
 /* harmony default export */ const esm_config = (config_PangeaConfig);
 
+;// CONCATENATED MODULE: external "node:buffer"
+const external_node_buffer_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:buffer");
 ;// CONCATENATED MODULE: external "node:fs"
 const external_node_fs_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:fs");
 ;// CONCATENATED MODULE: ./node_modules/form-data-encoder/lib/index.js
@@ -42150,8 +42506,11 @@ function getHeaderField(header, field, defaultValue) {
     const parts = header.split(field + "=");
     if (parts.length > 1 && parts[1]) {
         const valueParts = parts[1].split(";");
-        if (valueParts[0]) {
-            return valueParts[0].trim().replace(/['"]+/g, "");
+        if (valueParts[0] !== undefined) {
+            const value = valueParts[0].trim().replace(/['"]+/g, "");
+            if (value.length > 0) {
+                return value;
+            }
         }
     }
     return defaultValue;
@@ -42190,7 +42549,7 @@ class AttachedFile {
             destFolder = ".";
         }
         if (!filename) {
-            filename = this.filename ? this.filename : "defaultName.txt";
+            filename = this.filename ? this.filename : "defaultSaveFilename";
         }
         if (!external_node_fs_namespaceObject.existsSync(destFolder)) {
             // If it doesn't exist, create it
@@ -42269,6 +42628,7 @@ function parseJSONfields(key, value) {
 
 
 
+
 const delay = async (ms) => new Promise((resolve) => {
     setTimeout(resolve, ms);
 });
@@ -42331,11 +42691,13 @@ class request_PangeaRequest {
         return this.handleHttpResponse(response, options);
     }
     getFilenameFromContentDisposition(contentDispositionHeader) {
-        let contentDisposition = "";
-        if (Array.isArray(contentDispositionHeader)) {
-            contentDisposition = contentDispositionHeader[0] ?? contentDisposition;
+        if (contentDispositionHeader === null) {
+            return null;
         }
-        return getHeaderField(contentDisposition, "filename", undefined);
+        const contentDisposition = Array.isArray(contentDispositionHeader)
+            ? (contentDispositionHeader[0] ?? "")
+            : contentDispositionHeader;
+        return getHeaderField(contentDisposition, "filename", null);
     }
     getFilenameFromURL(url) {
         return new URL(url).pathname.split("/").pop();
@@ -42345,13 +42707,10 @@ class request_PangeaRequest {
             method: "GET",
             retry: { limit: this.config.requestRetries },
         });
-        let filename = this.getFilenameFromContentDisposition(response.headers.get("Content-Disposition"));
-        if (filename === undefined) {
-            filename = this.getFilenameFromURL(url);
-            if (filename === undefined) {
-                filename = "default_filename";
-            }
-        }
+        const filename = this.getFilenameFromContentDisposition(response.headers.get("Content-Disposition")) ??
+            this.getFilenameFromURL(url) ??
+            null ??
+            "default_filename";
         const contentTypeHeader = response.headers.get("Content-Type") ?? "";
         let contentType = "application/octet-stream";
         if (Array.isArray(contentTypeHeader)) {
@@ -42382,7 +42741,10 @@ class request_PangeaRequest {
     }
     async getFileToForm(file) {
         if (typeof file === "string") {
-            return await fileFromPath(file);
+            return await fileFromPath(file, "file");
+        }
+        if (external_node_buffer_namespaceObject.Buffer.isBuffer(file)) {
+            return new Blob([file]);
         }
         return file;
     }
@@ -42394,6 +42756,9 @@ class request_PangeaRequest {
     }
     async fullPostPresignedURL(endpoint, data, fileData) {
         const response = await this.requestPresignedURL(endpoint, data);
+        if (response.success && response.gotResponse) {
+            return response;
+        }
         if (!response.gotResponse || !response.accepted_result?.post_url) {
             throw new errors_PangeaErrors.PangeaError("Failed to request post presigned URL");
         }
@@ -42402,9 +42767,9 @@ class request_PangeaRequest {
         this.postPresignedURL(presigned_url, {
             file: fileData.file,
             file_details: file_details,
-            name: fileData.name,
+            name: "file",
         });
-        return response.gotResponse;
+        return response;
     }
     async postPresignedURL(url, fileData) {
         if (!fileData.file_details) {
@@ -42416,7 +42781,8 @@ class request_PangeaRequest {
                 form.append(key, value);
             }
         }
-        form.append("file", await this.getFileToForm(fileData.file));
+        // Right now, only accept the file with name "file"
+        form.append("file", await this.getFileToForm(fileData.file), "file");
         const response = await this.httpPost(url, {
             body: form,
             retry: { limit: this.config.requestRetries },
@@ -42445,10 +42811,9 @@ class request_PangeaRequest {
             data.transfer_method = types_TransferMethod.PUT_URL;
         }
         try {
-            await this.post(endpoint, data, {
+            return await this.post(endpoint, data, {
                 pollResultSync: false,
             });
-            throw new errors_PangeaErrors.PangeaError("This call should return 202");
         }
         catch (error) {
             if (!(error instanceof errors_PangeaErrors.AcceptedRequestException)) {
@@ -42532,9 +42897,11 @@ class request_PangeaRequest {
         }, { retries: options.retry?.limit });
     }
     async handleHttpResponse(response, options = {}) {
-        const body = await response.arrayBuffer();
-        let pangeaResponse = new PangeaResponse(response, body);
-        if (response.status === 202 && options.pollResultSync !== false) {
+        let pangeaResponse = response instanceof PangeaResponse
+            ? response
+            : new PangeaResponse(response, await response.arrayBuffer());
+        if (pangeaResponse.status === "Accepted" &&
+            options.pollResultSync !== false) {
             pangeaResponse = await this.handleAsync(pangeaResponse);
         }
         return this.checkResponse(pangeaResponse);
@@ -42696,9 +43063,9 @@ class BaseService {
         else {
             if (token.type !== "pangea_token")
                 throw new Error(`Token passed as vault secret is not of type 'pangea_token', but of type '${token.type}'`);
-            if (token.item_state !== "enabled")
+            if (!token.enabled)
                 throw new Error("Token passed as vault secret is not currently enabled");
-            const currentVersion = token.current_version;
+            const currentVersion = token.item_versions[0];
             if (!currentVersion)
                 throw new Error("Token passed as vault secret does not have a current version");
             if (currentVersion.state !== "active")
@@ -42928,10 +43295,10 @@ class Verifier {
     }
 }
 
-;// CONCATENATED MODULE: external "node:buffer"
-const external_node_buffer_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:buffer");
 // EXTERNAL MODULE: ./node_modules/@aws-crypto/crc32c/build/main/index.js
 var main = __nccwpck_require__(1491);
+// EXTERNAL MODULE: ./node_modules/json-canon/src/index.js
+var src = __nccwpck_require__(1533);
 ;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/utils/utils.js
 
 
@@ -42939,34 +43306,7 @@ var main = __nccwpck_require__(1491);
 
 
 
-function orderKeysRecursive(obj) {
-    const orderedEntries = Object.entries(obj).sort((a, b) => a[0].localeCompare(b[0]));
-    orderedEntries.forEach((value) => {
-        if (value[1] instanceof Object) {
-            value[1] = orderKeysRecursive(value[1]);
-        }
-    });
-    return Object.fromEntries(orderedEntries);
-}
-function isAscii(c) {
-    return c.codePointAt(0) <= 127;
-}
-function replacer(_key, value) {
-    if (value instanceof Date) {
-        return value.toISOString();
-    }
-    if (typeof value === "string") {
-        return [...value]
-            .map((c) => isAscii(c)
-            ? c // Do nothing.
-            : c
-                .split("") // Split into code points.
-                .map((p) => `\\u${p.codePointAt(0).toString(16)}`)
-                .join(""))
-            .join("");
-    }
-    return value;
-}
+
 function eventOrderAndStringifySubfields(obj) {
     const orderedEntries = Object.entries(obj).sort((a, b) => a[0].localeCompare(b[0]));
     orderedEntries.forEach((value) => {
@@ -42974,13 +43314,13 @@ function eventOrderAndStringifySubfields(obj) {
             value[1] = value[1].toISOString();
         }
         else if (value[1] instanceof Object) {
-            value[1] = JSON.stringify(value[1], replacer); // This is to stringify JSON objects in the same way server do
+            value[1] = canonicalize(value[1]); // This is to stringify JSON objects in the same way server do
         }
     });
     return Object.fromEntries(orderedEntries);
 }
 function canonicalize(obj) {
-    return JSON.stringify(orderKeysRecursive(obj), replacer);
+    return src(obj);
 }
 function canonicalizeEnvelope(obj) {
     const objCopy = JSON.parse(JSON.stringify(obj));
@@ -43078,9 +43418,22 @@ function getFileUploadParams(file) {
     const crcValue = (0,main.crc32c)(data);
     return {
         sha256: sha256hex,
-        crc32c: crcValue.toString(16),
+        crc32c: crcValue.toString(16).padStart(8, "0"),
         size: size,
     };
+}
+function getFileSize(file) {
+    let data;
+    if (typeof file === "string") {
+        data = external_node_fs_namespaceObject.readFileSync(file);
+    }
+    else if (external_node_buffer_namespaceObject.Buffer.isBuffer(file)) {
+        data = file;
+    }
+    else {
+        throw new errors_PangeaErrors.PangeaError("Invalid file type");
+    }
+    return data.length;
 }
 
 ;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/utils/verification.js
@@ -45899,34 +46252,29 @@ class VaultService extends base {
     /**
      * @summary State change
      * @description Change the state of a specific version of a secret or key.
-     * @operationId vault_post_v1_state_change
-     * @param {String} id - The item ID
-     * @param {Vault.ItemVersionState} state - The new state of the item version
-     * @param {Vault.StateChangeOptions} options - State change options. The following options are supported:
+     * @operationId vault_post_v2_state_change
+     * @param {Vault.StateChangeRequest} request - State change options. The following options are supported:
+     *   - id (string):  The item ID
+     *   - state (Vault.ItemVersionState): The new state of the item version
      *   - version (number): the item version
      *   - destroy_period (string): Period of time for the destruction of a compromised key.
      *     Only valid if state=`compromised`
      * @returns {Promise} - A promise representing an async call to the state change endpoint
      * @example
      * ```js
-     * const response = await vault.stateChange(
-     *   "pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
-     *   Vault.ItemVersionState.DEACTIVATED
-     * );
+     * const response = await vault.stateChange( {
+     *   id: "pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
+     *   state: Vault.ItemVersionState.DEACTIVATED
+     * });
      * ```
      */
-    async stateChange(id, state, options = {}) {
-        const data = {
-            id: id,
-            state: state,
-        };
-        Object.assign(data, options);
-        return this.post("v1/state/change", data);
+    async stateChange(request) {
+        return this.post("v2/state/change", request);
     }
     /**
      * @summary Delete
      * @description Delete a secret or key.
-     * @operationId vault_post_v1_delete
+     * @operationId vault_post_v2_delete
      * @param {String} id - The item ID
      * @returns {Promise} - A promise representing an async call to the delete endpoint
      * @example
@@ -45940,14 +46288,14 @@ class VaultService extends base {
         const data = {
             id: id,
         };
-        return this.post("v1/delete", data);
+        return this.post("v2/delete", data);
     }
     /**
      * @summary Retrieve
      * @description Retrieve a secret or key, and any associated information.
-     * @operationId vault_post_v1_get
-     * @param {String} id - The item ID
-     * @param {Vault.GetOptions} options - The following options are supported:
+     * @operationId vault_post_v2_get
+     * @param {Vault.GetRequest} request - The following options are supported:
+     *   - id (string): The item ID
      *   - version (number | string): The key version(s).
      *     `all` for all versions, `num` for a specific version,
      *      `-num` for the `num` latest versions.
@@ -45957,8 +46305,8 @@ class VaultService extends base {
      * @example
      * ```js
      * const response = await vault.getItem(
-     *   "pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
      *   {
+     *     id: "pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
      *     version: 1,
      *     version_state: Vault.ItemVersionState.ACTIVE,
      *     verbose: true,
@@ -45966,18 +46314,49 @@ class VaultService extends base {
      * );
      * ```
      */
-    async getItem(id, options = {}) {
-        let data = {
-            id: id,
-        };
-        Object.assign(data, options);
-        return this.post("v1/get", data);
+    async getItem(request) {
+        return this.post("v2/get", request);
+    }
+    /**
+     * @summary Get Bulk
+     * @description Retrieve a list of secrets, keys and folders.
+     * @operationId vault_post_v2_get_bulk
+     * @param {Vault.GetBulkRequest} request - The following options are supported:
+     *   - filter (object): A set of filters to help you customize your search. Examples:
+     *     `"folder": "/tmp"`, `"tags": "personal"`, `"name__contains": "xxx"`, `"created_at__gt": "2020-02-05T10:00:00Z"`
+     *     For metadata, use: `"metadata_": "<value>"`
+     *   - last (string): Internal ID returned in the previous look up response. Used for pagination.
+     *   - order: (Vault.ItemOrder): Ordering direction
+     *   - order_by: (Vault.ItemOrderBy): Property used to order the results
+     *   - size: (number): Maximum number of items in the response
+     * @returns {Promise} - A promise representing an async call to the get_bulk endpoint
+     * @example
+     * ```js
+     * const response = await vault.getBulk(
+     *   {
+     *     filter: {
+     *       folder: "/",
+     *       type: "asymmetric_key",
+     *       name__contains: "test",
+     *       metadata_key1: "value1",
+     *       created_at__lt: "2023-12-12T00:00:00Z",
+     *     },
+     *     last: "WyIvdGVzdF8yMDdfc3ltbWV0cmljLyJd",
+     *     order: Vault.ItemOrder.ASC,
+     *     order_by: Vault.ItemOrderby.NAME,
+     *     size=20,
+     *   }
+     * );
+     * ```
+     */
+    async getBulk(request) {
+        return this.post("v2/get_bulk", request);
     }
     /**
      * @summary List
      * @description Look up a list of secrets, keys and folders, and their associated information.
-     * @operationId vault_post_v1_list
-     * @param {Vault.ListOptions} options - The following options are supported:
+     * @operationId vault_post_v2_list
+     * @param {Vault.ListRequest} request - The following options are supported:
      *   - filter (object): A set of filters to help you customize your search. Examples:
      *     `"folder": "/tmp"`, `"tags": "personal"`, `"name__contains": "xxx"`, `"created_at__gt": "2020-02-05T10:00:00Z"`
      *     For metadata, use: `"metadata_": "<value>"`
@@ -46005,15 +46384,15 @@ class VaultService extends base {
      * );
      * ```
      */
-    async list(options = {}) {
-        return this.post("v1/list", options);
+    async list(request = {}) {
+        return this.post("v2/list", request);
     }
     /**
      * @summary Update
      * @description Update information associated with a secret or key.
-     * @operationId vault_post_v1_update
-     * @param {String} id - The item ID
-     * @param {Vault.UpdateOptions} options - The following options are supported:
+     * @operationId vault_post_v2_update
+     * @param {Vault.UpdateRequest} request - The following options are supported:
+     *   - id (string): The item ID
      *   - name (string): The name of this item
      *   - folder (string): The folder where this item is stored
      *   - metadata (object): User-provided metadata
@@ -46027,8 +46406,8 @@ class VaultService extends base {
      * @example
      * ```js
      * const response = await vault.update(
-     *   "pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
      *   {
+     *     id: "pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
      *     name: "my-very-secret-secret",
      *     folder: "/personal",
      *     metadata: {
@@ -46045,23 +46424,24 @@ class VaultService extends base {
      * );
      * ```
      */
-    async update(id, options = {}) {
-        let data = {
-            id: id,
-        };
-        Object.assign(data, options);
-        return this.post("v1/update", data);
+    async update(request) {
+        return this.post("v2/update", request);
     }
     /**
      * @summary Secret store
      * @description Import a secret.
-     * @operationId vault_post_v1_secret_store 1
-     * @param {String} secret - The secret value
-     * @param {String} name - The name of this item
-     * @param {Vault.Secret.StoreOptions} options - The following options are supported:
+     * @operationId vault_post_v2_secret_store 1
+     * @param {Vault.Secret.StoreRequest} request - The following options are supported:
+     *   - secret (string): The secret value
+     *   - token (string): The Pangea Token value
+     *   - client_secret (string): The oauth client secret
+     *   - client_id (string): The oauth client ID
+     *   - client_secret_id (string): The oauth client secret ID
+     *   - name (string): The name of this item
      *   - folder (string): The folder where this item is stored
      *   - metadata (object): User-provided metadata
      *   - tags (string[]): A list of user-defined tags
+     *   - rotation_grace_period (string): Grace period for the previous version of the secret
      *   - rotation_frequency (string): Period of time between item rotations
      *   - rotation_state (Vault.ItemVersionState): State to which the previous version should transition upon rotation.
      *   - expiration (string): Expiration timestamp
@@ -46069,9 +46449,9 @@ class VaultService extends base {
      * @example
      * ```js
      * const response = await vault.secretStore(
-     *   "12sdfgs4543qv@#%$casd",
-     *   "my-very-secret-secret",
      *   {
+     *     secret: "12sdfgs4543qv@#%$casd",
+     *     name: "my-very-secret-secret",
      *     folder: "/personal",
      *     metadata: {
      *       "created_by": "John Doe",
@@ -46085,117 +46465,42 @@ class VaultService extends base {
      * );
      * ```
      */
-    async secretStore(secret, name, options = {}) {
-        let data = {
-            type: types_Vault.ItemType.SECRET,
-            secret: secret,
-            name: name,
-        };
-        Object.assign(data, options);
-        return this.post("v1/secret/store", data);
-    }
-    /**
-     * @summary Pangea token store
-     * @description Import a secret.
-     * @operationId vault_post_v1_secret_store 2
-     * @param {String} pangeaToken - The pangea token to store
-     * @param {String} name - The name of this item
-     * @param {Vault.Secret.StoreOptions} options - The following options are supported:
-     *   - folder (string): The folder where this item is stored
-     *   - metadata (object): User-provided metadata
-     *   - tags (string[]): A list of user-defined tags
-     *   - rotation_frequency (string): Period of time between item rotations
-     *   - rotation_state (Vault.ItemVersionState): State to which the previous version should transition upon rotation.
-     *   - expiration (string): Expiration timestamp
-     * @returns {Promise} - A promise representing an async call to the secret store endpoint
-     * @example
-     * ```js
-     * const response = await vault.pangeaTokenStore(
-     *   "ptv_x6fdiizbon6j3bsdvnpmwxsz2aan7fqd",
-     *   "my-very-secret-secret",
-     *   {
-     *     folder: "/personal",
-     *     metadata: {
-     *       "created_by": "John Doe",
-     *       "used_in": "Google products"
-     *     },
-     *     tags: ["irs_2023", "personal"],
-     *     rotation_frequency: "10d",
-     *     rotation_state: Vault.ItemVersionState.DEACTIVATED,
-     *     expiration: "2025-01-01T10:00:00Z",
-     *   }
-     * );
-     * ```
-     */
-    async pangeaTokenStore(pangeaToken, name, options = {}) {
-        let data = {
-            type: types_Vault.ItemType.PANGEA_TOKEN,
-            secret: pangeaToken,
-            name: name,
-        };
-        Object.assign(data, options);
-        return this.post("v1/secret/store", data);
+    async secretStore(request) {
+        return this.post("v2/secret/store", request);
     }
     /**
      * @summary Secret rotate
      * @description Rotate a secret.
-     * @operationId vault_post_v1_secret_rotate 1
-     * @param {String} id - The item ID
-     * @param {String} secret - The secret value
-     * @param {Vault.Secret.Secret.RotateOptions} options - The following options are supported:
+     * @operationId vault_post_v2_secret_rotate 1
+     * @param {Vault.Secret.RotateRequest} request - The following options are supported:
+     *   - id (string): The item ID
+     *   - secret (string): The secret value
      *   - rotation_state (Vault.ItemVersionState): State to which the previous version should transition upon rotation.
      *     Default is `deactivated`.
      * @returns {Promise} - A promise representing an async call to the secret rotate endpoint
      * @example
      * ```js
      * const response = await vault.secretRotate(
-     *   "pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
-     *   "12sdfgs4543qv@#%$casd",
      *   {
+     *     id: "pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
+     *     secret: "12sdfgs4543qv@#%$casd",
      *     rotation_state: Vault.ItemVersionState.DEACTIVATED,
      *   }
      * );
      * ```
      */
-    async secretRotate(id, secret, options = {}) {
-        let data = {
-            id: id,
-            secret: secret,
-        };
-        Object.assign(data, options);
-        return this.post("v1/secret/rotate", data);
-    }
-    /**
-     * @summary Token rotate
-     * @description Rotate a Pangea token.
-     * @operationId vault_post_v1_secret_rotate 2
-     * @param {String} id - The item ID
-     * @param {String} rotation_grace_period - Grace period for the previous version of the Pangea Token
-     * @returns {Promise} - A promise representing an async call to the secret rotate endpoint
-     * @example
-     * ```js
-     * const response = await vault.pangeaTokenRotate(
-     *   "pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
-     *   "1d"
-     * );
-     * ```
-     */
-    async pangeaTokenRotate(id, rotation_grace_period) {
-        let data = {
-            id: id,
-            rotation_grace_period: rotation_grace_period,
-        };
-        return this.post("v1/secret/rotate", data);
+    async secretRotate(request) {
+        return this.post("v2/secret/rotate", request);
     }
     /**
      * @summary Symmetric generate
      * @description Generate a symmetric key.
-     * @operationId vault_post_v1_key_generate 2
-     * @param {Vault.SymmetricAlgorithm} algorithm - The algorithm of the key. Options
+     * @operationId vault_post_v2_key_generate 2
+     * @param {Vault.Symmetric.GenerateRequest} request - The following options are supported:
+     *   - algorithm (Vault.SymmetricAlgorithm): The algorithm of the key. Options
      * [listed in Vault documentation](https://pangea.cloud/docs/vault/manage-keys/generate-a-key#generating-a-symmetric-key).
-     * @param {Vault.KeyPurpose} purpose - The purpose of this key
-     * @param {String} name - The name of this item
-     * @param {Vault.Symmetric.GenerateOptions} options - The following options are supported:
+     *   - purpose (Vault.KeyPurpose): The purpose of this key
+     *   - name (string): The name of this item
      *   - folder (string): The folder where this item is stored
      *   - metadata (object): User-provided metadata
      *   - tags (string[]): A list of user-defined tags
@@ -46206,10 +46511,10 @@ class VaultService extends base {
      * @example
      * ```js
      * const response = await vault.symmetricGenerate(
-     *   Vault.SymmetricAlgorithm.AES128_CFB,
-     *   Vault.KeyPurpose.ENCRYPTION,
-     *   "my-very-secret-secret",
      *   {
+     *     algorithm: Vault.SymmetricAlgorithm.AES128_CFB,
+     *     purpose: Vault.KeyPurpose.ENCRYPTION,
+     *     name: "my-very-secret-secret",
      *     folder: "/personal",
      *     metadata: {
      *       "created_by": "John Doe",
@@ -46223,25 +46528,19 @@ class VaultService extends base {
      * );
      * ```
      */
-    async symmetricGenerate(algorithm, purpose, name, options = {}) {
-        let data = {
-            type: types_Vault.ItemType.SYMMETRIC_KEY,
-            algorithm: algorithm,
-            purpose: purpose,
-            name: name,
-        };
-        Object.assign(data, options);
-        return this.post("v1/key/generate", data);
+    async symmetricGenerate(request) {
+        request.type = types_Vault.ItemType.SYMMETRIC_KEY;
+        return this.post("v2/key/generate", request);
     }
     /**
      * @summary Asymmetric generate
      * @description Generate an asymmetric key.
-     * @operationId vault_post_v1_key_generate 1
-     * @param {Vault.AsymmetricAlgorithm} algorithm - The algorithm of the key. Options
-     * [listed in Vault documentation](https://pangea.cloud/docs/vault/manage-keys/generate-a-key#generating-asymmetric-key-pairs).
-     * @param {Vault.KeyPurpose} purpose - The purpose of this key
-     * @param {String} name - The name of this item
+     * @operationId vault_post_v2_key_generate 1
      * @param {Vault.Asymmetric.GenerateOptions} options - The following options are supported:
+     *   - algorithm (Vault.AsymmetricAlgorithm): The algorithm of the key. Options
+     * [listed in Vault documentation](https://pangea.cloud/docs/vault/manage-keys/generate-a-key#generating-asymmetric-key-pairs).
+     *   - purpose (Vault.KeyPurpose): The purpose of this key
+     *   - name (string): The name of this item
      *   - folder (string): The folder where this item is stored
      *   - metadata (object): User-provided metadata
      *   - tags (string[]): A list of user-defined tags
@@ -46252,10 +46551,10 @@ class VaultService extends base {
      * @example
      * ```js
      * const response = await vault.asymmetricGenerate(
-     *   Vault.AsymmetricAlgorithm.RSA2048_PKCS1V15_SHA256,
-     *   Vault.KeyPurpose.SIGNING,
-     *   "my-very-secret-secret",
      *   {
+     *     algorithm: Vault.AsymmetricAlgorithm.RSA2048_PKCS1V15_SHA256,
+     *     purpose: Vault.KeyPurpose.SIGNING,
+     *     name: "my-very-secret-secret",
      *     folder: "/personal",
      *     metadata: {
      *       "created_by": "John Doe",
@@ -46269,27 +46568,21 @@ class VaultService extends base {
      * );
      * ```
      */
-    async asymmetricGenerate(algorithm, purpose, name, options = {}) {
-        let data = {
-            type: types_Vault.ItemType.ASYMMETRIC_KEY,
-            algorithm: algorithm,
-            purpose: purpose,
-            name: name,
-        };
-        Object.assign(data, options);
-        return this.post("v1/key/generate", data);
+    async asymmetricGenerate(request) {
+        request.type = types_Vault.ItemType.ASYMMETRIC_KEY;
+        return this.post("v2/key/generate", request);
     }
     /**
      * @summary Asymmetric store
      * @description Import an asymmetric key.
-     * @operationId vault_post_v1_key_store 1
-     * @param {Vault.EncodedPrivateKey} privateKey - The private key in PEM format
-     * @param {Vault.EncodedPublicKey} publicKey - The public key in PEM format
-     * @param {Vault.AsymmetricAlgorithm} algorithm - The algorithm of the key. Options
+     * @operationId vault_post_v2_key_store 1
+     * @param {Vault.Asymmetric.StoreRequest} request - The following options are supported:
+     *   - private_key (Vault.EncodedPrivateKey): The private key in PEM format
+     *   - public_key (Vault.EncodedPublicKey): The public key in PEM format
+     *   - algorithm (Vault.AsymmetricAlgorithm): The algorithm of the key. Options
      * [listed in Vault documentation](https://pangea.cloud/docs/vault/manage-keys/import-a-key#importing-an-asymmetric-key-pair).
-     * @param {Vault.KeyPurpose} purpose - The purpose of this key. `signing`, `encryption`, or `jwt`.
-     * @param {String} name - The name of this item
-     * @param {Vault.Asymmetric.StoreOptions} options - The following options are supported:
+     *   - purpose (Vault.KeyPurpose): The purpose of this key. `signing`, `encryption`, or `jwt`.
+     *   - name (string): The name of this item
      *   - folder (string): The folder where this item is stored
      *   - metadata (object): User-provided metadata
      *   - tags (string[]): A list of user-defined tags
@@ -46300,12 +46593,12 @@ class VaultService extends base {
      * @example
      * ```js
      * const response = await vault.asymmetricStore(
-     *   "private key example",
-     *   "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA8s5JopbEPGBylPBcMK+L5PqHMqPJW/5KYPgBHzZGncc=\n-----END PUBLIC KEY-----",
-     *   Vault.AsymmetricAlgorithm.RSA2048_PKCS1V15_SHA256,
-     *   Vault.KeyPurpose.SIGNING,
-     *   "my-very-secret-secret",
      *   {
+     *     private_key: "private key example",
+     *     public_key: "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA8s5JopbEPGBylPBcMK+L5PqHMqPJW/5KYPgBHzZGncc=\n-----END PUBLIC KEY-----",
+     *     algorithm: Vault.AsymmetricAlgorithm.RSA2048_PKCS1V15_SHA256,
+     *     purpose: Vault.KeyPurpose.SIGNING,
+     *     name: "my-very-secret-secret",
      *     folder: "/personal",
      *     metadata: {
      *       "created_by": "John Doe",
@@ -46319,28 +46612,20 @@ class VaultService extends base {
      * );
      * ```
      */
-    async asymmetricStore(privateKey, publicKey, algorithm, purpose, name, options = {}) {
-        let data = {
-            type: types_Vault.ItemType.ASYMMETRIC_KEY,
-            private_key: privateKey,
-            public_key: publicKey,
-            algorithm: algorithm,
-            purpose: purpose,
-            name: name,
-        };
-        Object.assign(data, options);
-        return this.post("v1/key/store", data);
+    async asymmetricStore(request) {
+        request.type = types_Vault.ItemType.ASYMMETRIC_KEY;
+        return this.post("v2/key/store", request);
     }
     /**
      * @summary Symmetric store
      * @description Import a symmetric key.
-     * @operationId vault_post_v1_key_store 2
-     * @param {String} key - The key material (in base64)
-     * @param {Vault.SymmetricAlgorithm} algorithm - The algorithm of the key. Options
+     * @operationId vault_post_v2_key_store 2
+     * @param {Vault.Asymmetric.StoreRequest} request - The following options are supported:
+     *   - key (string): The key material (in base64)
+     *   - algorithm (Vault.SymmetricAlgorithm): The algorithm of the key. Options
      * [listed in Vault documentation](https://pangea.cloud/docs/vault/manage-keys/import-a-key#importing-a-symmetric-key).
-     * @param {Vault.KeyPurpose} purpose - The purpose of this key. `encryption` or `jwt`
-     * @param {String} name - The name of this item
-     * @param {Vault.Asymmetric.StoreOptions} options - The following options are supported:
+     *   - purpose (Vault.KeyPurpose): The purpose of this key. `encryption` or `jwt`
+     *   - name (string): The name of this item
      *   - folder (string): The folder where this item is stored
      *   - metadata (object): User-provided metadata
      *   - tags (string[]): A list of user-defined tags
@@ -46351,11 +46636,11 @@ class VaultService extends base {
      * @example
      * ```js
      * const response = await vault.symmetricStore(
-     *   "lJkk0gCLux+Q+rPNqLPEYw==",
-     *   Vault.SymmetricAlgorithm.AES128_CFB,
-     *   Vault.KeyPurpose.ENCRYPTION,
-     *   "my-very-secret-secret",
      *   {
+     *     keY: "lJkk0gCLux+Q+rPNqLPEYw==",
+     *     algorithm: Vault.SymmetricAlgorithm.AES128_CFB,
+     *     purpose: Vault.KeyPurpose.ENCRYPTION,
+     *     name: "my-very-secret-secret",
      *     folder: "/personal",
      *     metadata: {
      *       "created_by": "John Doe",
@@ -46369,23 +46654,16 @@ class VaultService extends base {
      * );
      * ```
      */
-    async symmetricStore(key, algorithm, purpose, name, options = {}) {
-        let data = {
-            type: types_Vault.ItemType.SYMMETRIC_KEY,
-            key: key,
-            algorithm: algorithm,
-            purpose: purpose,
-            name: name,
-        };
-        Object.assign(data, options);
-        return this.post("v1/key/store", data);
+    async symmetricStore(request) {
+        request.type = types_Vault.ItemType.SYMMETRIC_KEY;
+        return this.post("v2/key/store", request);
     }
     /**
      * @summary Key rotate
      * @description Manually rotate a symmetric or asymmetric key.
-     * @operationId vault_post_v1_key_rotate
-     * @param {String} id - The ID of the item
-     * @param {Vault.Key.RotateOptions} options - Supported options:
+     * @operationId vault_post_v2_key_rotate
+     * @param {Vault.Key.RotateRequest} request - Supported options:
+     *   - id (string): The ID of the item
      *   - rotation_state (Vault.ItemVersionState): State to which the previous version should transition upon rotation.
      *     `deactivated`, `suspended`, or `destroyed`. Default is `deactivated`.
      *   - public_key (string): The public key (in PEM format)
@@ -46403,65 +46681,53 @@ class VaultService extends base {
      * );
      * ```
      */
-    async keyRotate(id, options = {}) {
-        let data = {
-            id: id,
-        };
-        Object.assign(data, options);
-        return this.post("v1/key/rotate", data);
+    async keyRotate(request) {
+        return this.post("v2/key/rotate", request);
     }
     /**
      * @summary Encrypt
      * @description Encrypt a message using a key.
-     * @operationId vault_post_v1_key_encrypt
-     * @param {String} id - The item ID
-     * @param {String} plainText - A message to be in encrypted (in base64)
+     * @operationId vault_post_v2_key_encrypt
+     * @param {Vault.Symmetric.EncryptRequest} request - Supported options:
+     *   - id (string) The item ID
+     *   - plainText (string): A message to be in encrypted (in base64)
      * @returns {Promise} - A promise representing an async call to the key encrypt endpoint
      * @example
      * ```js
-     * const response = await vault.encrypt(
-     *   "pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
-     *   "lJkk0gCLux+Q+rPNqLPEYw=="
-     * );
+     * const response = await vault.encrypt({
+     *   id: "pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
+     *   plain_text: "lJkk0gCLux+Q+rPNqLPEYw=="
+     * });
      * ```
      */
-    async encrypt(id, plainText) {
-        let data = {
-            id: id,
-            plain_text: plainText,
-        };
-        return this.post("v1/key/encrypt", data);
+    async encrypt(request) {
+        return this.post("v2/encrypt", request);
     }
     /**
      * @summary Decrypt
      * @description Decrypt a message using a key.
-     * @operationId vault_post_v1_key_decrypt
-     * @param {String} id - The item ID
-     * @param {String} cipherText - A message encrypted by Vault (in base64)
-     * @param {Object} options - Supported options:
+     * @operationId vault_post_v2_key_decrypt
+     * @param {Object} request - Supported options:
+     *   - id (string): The item ID
+     *   - cipher_text (string): A message encrypted by Vault (in base64)
      *   - version (number): The item version
      * @returns {Promise} - A promise representing an async call to the key decrypt endpoint
      * @example
      * ```js
-     * const response = await vault.decrypt(
-     *   "pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
-     *   "lJkk0gCLux+Q+rPNqLPEYw==",
-     *   1
-     * );
+     * const response = await vault.decrypt({
+     *   id: "pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
+     *   cipher_text: "lJkk0gCLux+Q+rPNqLPEYw==",
+     *   version: 1
+     * });
      * ```
      */
-    async decrypt(id, cipherText, options = {}) {
-        let data = {
-            id: id,
-            cipher_text: cipherText,
-        };
-        Object.assign(data, options);
-        return this.post("v1/key/decrypt", data);
+    async decrypt(request) {
+        return this.post("v2/decrypt", request);
     }
     /**
      * @summary Sign
      * @description Sign a message using a key.
-     * @operationId vault_post_v1_key_sign
+     * @operationId vault_post_v2_key_sign
      * @param {String} id - The item ID
      * @param {String} message - The message to be signed, in base64
      * @returns {Promise} - A promise representing an async call to the key sign endpoint
@@ -46478,42 +46744,36 @@ class VaultService extends base {
             id: id,
             message: message,
         };
-        return this.post("v1/key/sign", data);
+        return this.post("v2/sign", data);
     }
     /**
      * @summary Verify
      * @description Verify a signature using a key.
-     * @operationId vault_post_v1_key_verify
-     * @param {String} id - The item ID
-     * @param {String} message - The message to be verified (in base64)
-     * @param {String} signature - The message signature (in base64)
-     * @param {Vault.Asymmetric.VerifyOptions} options - Supported options:
+     * @operationId vault_post_v2_key_verify
+     * @param {Vault.Asymmetric.VerifyOptions} request - Supported options:
+     *   - id (string): The item ID
+     *   - message (string): The message to be verified (in base64)
+     *   - signature (string): The message signature (in base64)
      *   - version (number): The item version
      * @returns {Promise} - A promise representing an async call to the key verify endpoint
      * @example
      * ```js
-     * const response = await vault.verify(
-     *   "pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
-     *   "lJkk0gCLux+Q+rPNqLPEYw=="
-     *   "FfWuT2Mq/+cxa7wIugfhzi7ktZxVf926idJNgBDCysF/knY9B7M6wxqHMMPDEBs86D8OsEGuED21y3J7IGOpCQ==",
-     * );
+     * const response = await vault.verify({
+     *   id: "pvi_p6g5i3gtbvqvc3u6zugab6qs6r63tqf5",
+     *   message: "lJkk0gCLux+Q+rPNqLPEYw=="
+     *   signature: "FfWuT2Mq/+cxa7wIugfhzi7ktZxVf926idJNgBDCysF/knY9B7M6wxqHMMPDEBs86D8OsEGuED21y3J7IGOpCQ==",
+     * });
      * ```
      */
-    async verify(id, message, signature, options = {}) {
-        let data = {
-            id: id,
-            message: message,
-            signature: signature,
-        };
-        Object.assign(data, options);
-        return this.post("v1/key/verify", data);
+    async verify(request) {
+        return this.post("v2/verify", request);
     }
     /**
      * @summary JWT Retrieve
      * @description Retrieve a key in JWK format.
-     * @operationId vault_post_v1_get_jwk
-     * @param {String} id - The item ID
+     * @operationId vault_post_v2_get_jwk
      * @param {Vault.JWK.GetOptions} options - Supported options:
+     *   - id (string): The item ID
      *   - version (string): The key version(s). `all` for all versions, `num` for a specific version,
      *     `-num` for the `num` latest versions
      * @returns {Promise} - A promise representing an async call to the get JWK endpoint
@@ -46524,17 +46784,13 @@ class VaultService extends base {
      * );
      * ```
      */
-    async jwkGet(id, options = {}) {
-        let data = {
-            id: id,
-        };
-        Object.assign(data, options);
-        return this.post("v1/get/jwk", data);
+    async jwkGet(request) {
+        return this.post("v2/jwk/get", request);
     }
     /**
      * @summary JWT Sign
      * @description Sign a JSON Web Token (JWT) using a key.
-     * @operationId vault_post_v1_key_sign_jwt
+     * @operationId vault_post_v2_key_sign_jwt
      * @param {String} id - The item ID
      * @param {String} payload - The JWT payload (in JSON)
      * @returns {Promise} - A promise representing an async call to the JWT sign endpoint
@@ -46551,12 +46807,12 @@ class VaultService extends base {
             id: id,
             payload: payload,
         };
-        return this.post("v1/key/sign/jwt", data);
+        return this.post("v2/jwt/sign", data);
     }
     /**
      * @summary JWT Verify
      * @description Verify the signature of a JSON Web Token (JWT).
-     * @operationId vault_post_v1_key_verify_jwt
+     * @operationId vault_post_v2_key_verify_jwt
      * @param {String} jws - The signed JSON Web Token (JWS)
      * @returns {Promise} - A promise representing an async call to the JWT verify endpoint
      * @example
@@ -46570,12 +46826,12 @@ class VaultService extends base {
         let data = {
             jws: jws,
         };
-        return this.post("v1/key/verify/jwt", data);
+        return this.post("v2/jwt/verify", data);
     }
     /**
      * @summary Create
      * @description Creates a folder.
-     * @operationId vault_post_v1_folder_create
+     * @operationId vault_post_v2_folder_create
      * @param {Vault.Folder.CreateRequest} request - An object representing request to /folder/create endpoint
      * @returns {Promise} - A promise representing an async call to the folder create endpoint
      * @example
@@ -46587,12 +46843,12 @@ class VaultService extends base {
      * ```
      */
     async folderCreate(request) {
-        return this.post("v1/folder/create", request);
+        return this.post("v2/folder/create", request);
     }
     /**
      * @summary Encrypt structured
      * @description Encrypt parts of a JSON object.
-     * @operationId vault_post_v1_key_encrypt_structured
+     * @operationId vault_post_v2_key_encrypt_structured
      * @param request Request parameters.
      * @returns A `Promise` of the encrypted result.
      * @example
@@ -46605,12 +46861,12 @@ class VaultService extends base {
      * ```
      */
     async encryptStructured(request) {
-        return this.post("v1/key/encrypt/structured", request);
+        return this.post("v2/encrypt_structured", request);
     }
     /**
      * @summary Decrypt structured
      * @description Decrypt parts of a JSON object.
-     * @operationId vault_post_v1_key_decrypt_structured
+     * @operationId vault_post_v2_key_decrypt_structured
      * @param request Request parameters.
      * @returns A `Promise` of the decrypted result.
      * @example
@@ -46623,12 +46879,12 @@ class VaultService extends base {
      * ```
      */
     async decryptStructured(request) {
-        return this.post("v1/key/decrypt/structured", request);
+        return this.post("v2/decrypt_structured", request);
     }
     /**
      * @summary Encrypt transform
      * @description Encrypt using a format-preserving algorithm (FPE).
-     * @operationId vault_post_v1_key_encrypt_transform
+     * @operationId vault_post_v2_key_encrypt_transform
      * @param request Request parameters.
      * @returns A `Promise` of the encrypted result.
      * @example
@@ -46642,12 +46898,12 @@ class VaultService extends base {
      * ```
      */
     async encryptTransform(request) {
-        return this.post("v1/key/encrypt/transform", request);
+        return this.post("v2/encrypt_transform", request);
     }
     /**
      * @summary Decrypt transform
      * @description Decrypt using a format-preserving algorithm (FPE).
-     * @operationId vault_post_v1_key_decrypt_transform
+     * @operationId vault_post_v2_key_decrypt_transform
      * @param request Request parameters.
      * @returns A `Promise` of the decrypted result.
      * @example
@@ -46661,12 +46917,12 @@ class VaultService extends base {
      * ```
      */
     async decryptTransform(request) {
-        return this.post("v1/key/decrypt/transform", request);
+        return this.post("v2/decrypt_transform", request);
     }
     /**
      * @summary Export
      * @description Export a symmetric or asymmetric key.
-     * @operationId vault_post_v1_export
+     * @operationId vault_post_v2_export
      * @param request Request parameters.
      * @returns A `Promise` of the export result.
      * @example
@@ -46684,7 +46940,7 @@ class VaultService extends base {
      * ```
      */
     async export(request) {
-        return this.post("v1/export", request);
+        return this.post("v2/export", request);
     }
 }
 /* harmony default export */ const vault = (VaultService);
@@ -46808,7 +47064,429 @@ class FileScanUploader {
     }
 }
 
+;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/services/sanitize.js
+
+
+
+
+/** Sanitize API client. */
+class SanitizeService extends base {
+    /**
+     * Creates a new `SanitizeService` with the given Pangea API token and
+     * configuration.
+     *
+     * @param token Pangea API token.
+     * @param config Configuration.
+     *
+     * @example
+     * ```js
+     * const config = new PangeaConfig({ domain: "pangea_domain" });
+     * const sanitize = new SanitizeService("pangea_token", config);
+     * ```
+     *
+     * @summary Sanitize
+     */
+    constructor(token, config) {
+        super("sanitize", token, config);
+    }
+    /**
+     * @summary Sanitize
+     * @description Apply file sanitization actions according to specified rules.
+     * @operationId sanitize_post_v1_sanitize
+     * @param request Request parameters.
+     * @param fileData Optional file data for when the "source-url" transfer
+     * method is used.
+     * @param options Additional options.
+     * @returns The sanitized file and information on the sanitization that was
+     * performed.
+     * @example
+     * ```ts
+     * import { readFile } from "node:fs/promises";
+     *
+     * const request: Sanitize.SanitizeRequest = {
+     *   transfer_method: TransferMethod.POST_URL,
+     *   uploaded_file_name: "uploaded_file",
+     * };
+     * const response = await sanitize.sanitize(
+     *   request,
+     *   { file: await readFile("/path/to/file.pdf"), name: "filename" }
+     * );
+     * ```
+     */
+    sanitize(request, fileData, options = {
+        pollResultSync: true,
+    }) {
+        let fsData = {};
+        if (request.transfer_method === types_TransferMethod.PUT_URL) {
+            throw new errors_PangeaErrors.PangeaError(`${request.transfer_method} not supported in this function. Use getUploadURL() instead.`);
+        }
+        let files = undefined;
+        if (fileData) {
+            files = {
+                file: fileData,
+            };
+        }
+        const postOptions = {
+            pollResultSync: options.pollResultSync,
+            files: files,
+        };
+        if ((!request.transfer_method ||
+            request.transfer_method === types_TransferMethod.POST_URL) &&
+            fileData) {
+            fsData = getFileUploadParams(fileData.file);
+        }
+        Object.assign(request, fsData);
+        return this.post("v1/sanitize", request, postOptions);
+    }
+    /**
+     * @summary Sanitize via presigned URL
+     * @description Apply file sanitization actions according to specified rules
+     * via a [presigned URL](https://pangea.cloud/docs/api/transfer-methods).
+     * @operationId sanitize_post_v1_sanitize 2
+     * @param request Request parameters.
+     * @returns A presigned URL.
+     * @example
+     * ```ts
+     * const request: Sanitize.SanitizeRequest = {
+     *   transfer_method: TransferMethod.PUT_URL,
+     *   uploaded_file_name: "uploaded_file",
+     * };
+     * const presignedUrl = await sanitize.requestUploadURL(request);
+     *
+     * // Upload file to `presignedUrl.accepted_result.put_url`.
+     *
+     * // Poll for Sanitize's result.
+     * const response = await sanitize.pollResult<Sanitize.SanitizeResult>(presignedUrl.request_id);
+     * ```
+     */
+    async requestUploadURL(request) {
+        if (request.transfer_method === types_TransferMethod.POST_URL &&
+            (!request.size || !request.crc32c || !request.sha256)) {
+            throw new errors_PangeaErrors.PangeaError(`When transfer_method is ${request.transfer_method}, crc32c, sha256 and size must be set. Set them or use transfer_method ${types_TransferMethod.PUT_URL}`);
+        }
+        return await this.request.requestPresignedURL("v1/sanitize", request);
+    }
+}
+/* harmony default export */ const sanitize = (SanitizeService);
+
+;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/services/share.js
+
+
+
+
+
+/**
+ * ShareService class provides methods for interacting with the Share Service
+ * @extends BaseService
+ */
+class ShareService extends base {
+    constructor(token, config) {
+        super("share", token, config);
+    }
+    /**
+     * @summary Buckets
+     * @description Get information on the accessible buckets.
+     * @operationId share_post_v1_buckets
+     * @returns Information on the accessible buckets
+     * @example
+     * ```js
+     * await client.buckets();
+     * ```
+     */
+    buckets() {
+        return this.post("v1/buckets", {});
+    }
+    /**
+     * @summary Delete
+     * @description Delete object by ID or path. If both are supplied, the path must match that of the object represented by the ID.
+     * @operationId share_post_v1_delete
+     * @param {Share.DeleteRequest} request
+     * @returns {Promise} - A promise representing an async call to the delete endpoint.
+     * @example
+     * ```js
+     * const request = { id: "pos_3djfmzg2db4c6donarecbyv5begtj2bm" };
+     * const response = await client.delete(request);
+     * ```
+     */
+    delete(request) {
+        return this.post("v1/delete", request);
+    }
+    /**
+     * @summary Create a folder
+     * @description Create a folder, either by name or path and parent_id.
+     * @operationId share_post_v1_folder_create
+     * @param {Share.FolderCreateRequest} request
+     * @returns {Promise} - A promise representing an async call to the folder create endpoint.
+     * @example
+     * ```js
+     * const request = {
+     *   metadata: {
+     *     created_by: "jim",
+     *     priority: "medium",
+     *   },
+     *   parent_id: "pos_3djfmzg2db4c6donarecbyv5begtj2bm",
+     *   folder: "/",
+     *   tags: ["irs_2023", "personal"],
+     * };
+     *
+     * const response = await client.folderCreate(request);
+     * ```
+     */
+    folderCreate(request) {
+        return this.post("v1/folder/create", request);
+    }
+    /**
+     * @summary Get an object
+     * @description Get object. If both ID and path are supplied, the call will fail if the target object doesn't match both properties.
+     * @operationId share_post_v1_get
+     * @param {Share.GetRequest} request
+     * @returns {Promise} - A promise representing an async call to the get item endpoint.
+     * @example
+     * ```js
+     * const request = { id: "pos_3djfmzg2db4c6donarecbyv5begtj2bm" };
+     * const response = await client.getItem(request);
+     * ```
+     */
+    getItem(request) {
+        return this.post("v1/get", request);
+    }
+    /**
+     * @summary Get archive
+     * @description Get an archive file of multiple objects.
+     * @operationId share_post_v1_get_archive
+     * @param {Share.GetArchiveRequest} request
+     * @returns {Promise} - A promise representing an async call to the get archive endpoint.
+     * @example
+     * ```js
+     * const request = { ids: ["pos_3djfmzg2db4c6donarecbyv5begtj2bm"] };
+     * const response = await client.getArchive(request);
+     * ```
+     */
+    getArchive(request) {
+        return this.post("v1/get_archive", request);
+    }
+    /**
+     * @summary List
+     * @description List or filter/search records.
+     * @operationId share_post_v1_list
+     * @param {Share.ListRequest} request
+     * @returns {Promise} - A promise representing an async call to the list endpoint.
+     * @example
+     * ```js
+     * const request = {};
+     * const response = await client.list(request);
+     * ```
+     */
+    list(request = {}) {
+        return this.post("v1/list", request);
+    }
+    /**
+     * @summary Upload a file
+     * @description Upload a file.
+     * @operationId share_post_v1_put
+     * @param {Share.PutRequest} request
+     * @param {FileData} fileData
+     * @returns {Promise} - A promise representing an async call to the put endpoint.
+     * @example
+     * ```js
+     * const request = {
+     *   transfer_method: TransferMethod.MULTIPART,
+     *   Metadata: {
+     *     created_by: "jim",
+     *     priority: "medium",
+     *   },
+     *   parent_id: "pos_3djfmzg2db4c6donarecbyv5begtj2bm",
+     *   folder: "/",
+     *   tags: ["irs_2023", "personal"],
+     * };
+     * const file = fs.readFileSync("./path/to/file.pdf");
+     * const fileData = {
+     *   file,
+     *   name: "file",
+     * };
+     *
+     * const response = await client.put(request, fileData);
+     * ```
+     */
+    put(request, fileData) {
+        // With `source-url`, no file data is needed.
+        if (request.transfer_method === types_TransferMethod.SOURCE_URL) {
+            return this.post("v1/put", request);
+        }
+        // Otherwise, file data is required.
+        if (!fileData) {
+            throw new TypeError("`fileData` is required when `transfer_method` is not `SOURCE_URL`.");
+        }
+        let fsData = {};
+        if (!request.transfer_method ||
+            request.transfer_method === types_TransferMethod.POST_URL) {
+            fsData = getFileUploadParams(fileData.file);
+            request.crc32c = fsData.crc32c;
+            request.sha256 = fsData.sha256;
+            request.size = fsData.size;
+        }
+        else if (getFileSize(fileData.file) === 0) {
+            request.size = 0;
+        }
+        return this.post("v1/put", request, {
+            files: {
+                file: fileData,
+            },
+        });
+    }
+    /**
+     * @summary Request upload URL
+     * @description Request a [presigned URL](https://pangea.cloud/docs/api/transfer-methods).
+     * @operationId share_post_v1_put 2
+     * @param {Share.PutRequest} request
+     * @returns {Promise} - A promise representing an async call to the put endpoint.
+     * @example
+     * ```js
+     * const { crc32c, sha256, size } = getFileUploadParams("./path/to/file.pdf");
+     *
+     * const request = {
+     *   transfer_method: TransferMethod.POST_URL,
+     *   crc32c,
+     *   sha256,
+     *   size,
+     *   Metadata: {
+     *     created_by: "jim",
+     *     priority: "medium",
+     *   },
+     *   parent_id: "pos_3djfmzg2db4c6donarecbyv5begtj2bm",
+     *   folder: "/",
+     *   tags: ["irs_2023", "personal"],
+     * };
+     *
+     * const response = await client.requestUploadURL(request);
+     * ```
+     */
+    requestUploadURL(request) {
+        if (request.transfer_method === types_TransferMethod.POST_URL &&
+            (!request.size || !request.crc32c || !request.sha256)) {
+            throw new errors_PangeaErrors.PangeaError(`When transfer_method is ${request.transfer_method}, crc32c, sha256 and size must be set. Set them or use transfer_method ${types_TransferMethod.PUT_URL}`);
+        }
+        return this.request.requestPresignedURL("v1/put", request);
+    }
+    /**
+     * @summary Update a file
+     * @description Update a file.
+     * @operationId share_post_v1_update
+     * @param {Share.UpdateRequest} request
+     * @returns {Promise} - A promise representing an async call to the update endpoint.
+     * @example
+     * ```js
+     * const request = {
+     *   id: "pos_3djfmzg2db4c6donarecbyv5begtj2bm",
+     *   folder: "/",
+     *   remove_metadata: {
+     *     created_by: "jim",
+     *     priority: "medium",
+     *   }
+     *   remove_tags: ["irs_2023", "personal"],
+     * };
+     *
+     * const response = await client.update(request);
+     * ```
+     */
+    update(request) {
+        return this.post("v1/update", request);
+    }
+    /**
+     * @summary Create share links
+     * @description Create a share link.
+     * @operationId share_post_v1_share_link_create
+     * @param {Share.ShareLinkCreateRequest} request
+     * @returns {Promise} - A promise representing an async call to the share link create endpoint.
+     * @example
+     * ```js
+     * const authenticator = {
+     *   auth_type: Share.AuthenticatorType.PASSWORD,
+     *   auth_context: "my_fav_Pa55word",
+     * };
+     * const link = {
+     *   targets: ["pos_3djfmzg2db4c6donarecbyv5begtj2bm"],
+     *   link_type: Share.LinkType.DOWNLOAD,
+     *   authenticators: [authenticator],
+     * };
+     * const request = { links: [link] };
+     * const response = await client.shareLinkCreate(request);
+     * ```
+     */
+    shareLinkCreate(request) {
+        return this.post("v1/share/link/create", request);
+    }
+    /**
+     * @summary Get share link
+     * @description Get a share link.
+     * @operationId share_post_v1_share_link_get
+     * @param {Share.ShareLinkGetRequest} request
+     * @returns {Promise} - A promise representing an async call to the share link get endpoint.
+     * @example
+     * ```js
+     * const request = { id: "psl_3djfmzg2db4c6donarecbyv5begtj2bm" };
+     * const response = await client.shareLinkGet(request);
+     * ```
+     */
+    shareLinkGet(request) {
+        return this.post("v1/share/link/get", request);
+    }
+    /**
+     * @summary List share links
+     * @description Look up share links by filter options.
+     * @operationId share_post_v1_share_link_list
+     * @param {Share.ShareLinkListRequest} request
+     * @returns {Promise} - A promise representing an async call to the share link list endpoint.
+     * @example
+     * ```js
+     * const request = {};
+     * const response = await client.shareLinkList(request);
+     * ```
+     */
+    shareLinkList(request = {}) {
+        return this.post("v1/share/link/list", request);
+    }
+    /**
+     * @summary Delete share links
+     * @description Delete share links.
+     * @operationId share_post_v1_share_link_delete
+     * @param {Share.ShareLinkDeleteRequest} request
+     * @returns {Promise} - A promise representing an async call to the delete share links endpoint.
+     * @example
+     * ```js
+     * const request = { ids: ["psl_3djfmzg2db4c6donarecbyv5begtj2bm"] };
+     * const response = await client.shareLinkDelete(request);
+     * ```
+     */
+    shareLinkDelete(request) {
+        return this.post("v1/share/link/delete", request);
+    }
+    /**
+     * @summary Send share links
+     * @description Send share links.
+     * @operationId share_post_v1_share_link_send
+     * @param {Share.ShareLinkDeleteRequest} request
+     * @returns {Promise} - A promise representing an async call to the send share links endpoint.
+     * @example
+     * ```js
+     *  const resp = await client.shareLinkSend({
+     *    links: [{
+     *      id: linkID,
+     *      email: "user@email.com",
+     *    }],
+     *    sender_email: "sender@email.com",
+     *    sender_name: "Sender Name"
+     *  })
+     */
+    shareLinkSend(request) {
+        return this.post("v1/share/link/send", request);
+    }
+}
+/* harmony default export */ const share = (ShareService);
+
 ;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/services/index.js
+
+
 
 
 
@@ -46832,6 +47510,8 @@ class FileScanUploader {
     UserIntelService: UserIntelService,
     VaultService: vault,
     FileScanService: FileScanService,
+    SanitizeService: sanitize,
+    ShareService: share,
 });
 
 // EXTERNAL MODULE: external "node:util"
@@ -46839,7 +47519,9 @@ var external_node_util_ = __nccwpck_require__(7975);
 ;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/utils/crypto.js
 
 
+
 const generateKeyPair = (0,external_node_util_.promisify)(external_node_crypto_namespaceObject.generateKeyPair);
+const IV_SIZE = 12; // Standard nonce size for GCM
 /**
  * Generates a new RSA key pair of the given key size.
  * @param keySize Key size.
@@ -46875,6 +47557,104 @@ function asymmetricDecrypt(privateKey, cipherText, oaepHash = "sha512", padding 
     }, cipherText)
         .toString("utf8");
 }
+async function kemDecrypt(input) {
+    if (input.symmetricAlgorithm != KEMSymmetricAlgorithm.AES256_GCM) {
+        throw Error(`Unsupported symmetric algorithm: ${input.symmetricAlgorithm}`);
+    }
+    if (input.asymmetricAlgorithm !=
+        Vault.ExportEncryptionAlgorithm.RSA4096_NO_PADDING_KEM) {
+        throw Error(`Unsupported asymmetric algorithm: ${input.asymmetricAlgorithm}`);
+    }
+    if (input.kdf != KEMkdf.PBKDF2) {
+        throw Error(`Unsupported kdf: ${input.kdf}`);
+    }
+    if (input.hashAlgorithm != KEMHashAlgorithm.SHA512) {
+        throw Error(`Unsupported hash algorithm: ${input.hashAlgorithm}`);
+    }
+    const salt = crypto.privateDecrypt({
+        key: input.privateKey,
+        padding: crypto.constants.RSA_NO_PADDING,
+    }, input.encryptedSalt);
+    const keyLength = getKeyLength(input.symmetricAlgorithm);
+    const symmetricKey = crypto.pbkdf2Sync(Buffer.from(input.password), salt, input.iterationCount, keyLength, input.hashAlgorithm);
+    const key = await crypto.subtle.importKey("raw", symmetricKey, {
+        name: "AES-GCM",
+    }, false, ["decrypt"]);
+    const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv: input.iv }, key, input.cipher);
+    const enc = new TextDecoder("ascii");
+    return enc.decode(decrypted);
+}
+var KEMHashAlgorithm;
+(function (KEMHashAlgorithm) {
+    KEMHashAlgorithm["SHA512"] = "sha512";
+})(KEMHashAlgorithm || (KEMHashAlgorithm = {}));
+var KEMSymmetricAlgorithm;
+(function (KEMSymmetricAlgorithm) {
+    KEMSymmetricAlgorithm["AES256_GCM"] = "AES-GCM-256";
+})(KEMSymmetricAlgorithm || (KEMSymmetricAlgorithm = {}));
+var KEMkdf;
+(function (KEMkdf) {
+    KEMkdf["PBKDF2"] = "pbkdf2";
+})(KEMkdf || (KEMkdf = {}));
+function getKeyLength(algorithm) {
+    if (algorithm == KEMSymmetricAlgorithm.AES256_GCM) {
+        return 32;
+    }
+    throw Error(`Unsupported algorithm: ${algorithm}`);
+}
+async function kemDecryptExportResult(result, password, privateKey) {
+    let cipherEncoded = result.private_key;
+    if (!cipherEncoded) {
+        cipherEncoded = result.key;
+    }
+    if (!cipherEncoded) {
+        throw TypeError("`private_key` or `key` should be set.");
+    }
+    const cipherWithIV = Buffer.from(cipherEncoded, "base64");
+    const encryptedSalt = Buffer.from(result.encrypted_salt, "base64");
+    const iv = cipherWithIV.subarray(0, IV_SIZE);
+    const cipher = cipherWithIV.subarray(IV_SIZE);
+    return await kemDecrypt({
+        privateKey,
+        cipher,
+        iv: iv,
+        password,
+        encryptedSalt,
+        symmetricAlgorithm: result.symmetric_algorithm,
+        asymmetricAlgorithm: result.asymmetric_algorithm,
+        kdf: result.kdf,
+        iterationCount: result.iteration_count,
+        hashAlgorithm: result.hash_algorithm,
+    });
+}
+
+;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/file_uploader.js
+
+
+
+class FileUploader {
+    serviceName = "FileUploader";
+    request_ = undefined;
+    constructor() { }
+    get request() {
+        if (this.request_) {
+            return this.request_;
+        }
+        this.request_ = new PangeaRequest(this.serviceName, "notatoken", new PangeaConfig());
+        return this.request_;
+    }
+    // TODO: Docs
+    async uploadFile(url, fileData, options) {
+        if (!options.transfer_method ||
+            options.transfer_method === TransferMethod.PUT_URL) {
+            await this.request.putPresignedURL(url, fileData);
+        }
+        else if (options.transfer_method === TransferMethod.POST_URL) {
+            await this.request.postPresignedURL(url, fileData);
+        }
+    }
+}
+/* harmony default export */ const file_uploader = ((/* unused pure expression or super */ null && (FileUploader)));
 
 ;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/index.js
 
@@ -46884,6 +47664,7 @@ function asymmetricDecrypt(privateKey, cipherText, oaepHash = "sha512", padding 
 // Export all types
 
 // Export all errors
+
 
 
 
@@ -46904,6 +47685,8 @@ const esm_URLIntelService = services.URLIntelService;
 const esm_UserIntelService = services.UserIntelService;
 const esm_VaultService = services.VaultService;
 const esm_FileScanService = services.FileScanService;
+const esm_SanitizeService = services.SanitizeService;
+const esm_ShareService = services.ShareService;
 
 ;// CONCATENATED MODULE: ./index.mjs
 

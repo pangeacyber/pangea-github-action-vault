@@ -28,7 +28,7 @@
     "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.0",
     "libsodium-wrappers": "^0.7.15",
-    "pangea-node-sdk": "^3.11.0"
+    "pangea-node-sdk": "^4.1.0"
   },
   "devDependencies": {
     "@vercel/ncc": "^0.38.2",
