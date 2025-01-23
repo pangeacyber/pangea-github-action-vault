@@ -40782,7 +40782,7 @@ var Share;
 
 ;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/config.js
 
-const version = "4.1.0";
+const version = "4.3.0";
 /** Configuration for a Pangea service client. */
 class config_PangeaConfig {
     /** Pangea API domain. */
@@ -46202,6 +46202,22 @@ class UserIntelService extends base {
         Object.assign(data, options);
         return this.post("v2/password/breached", data);
     }
+    /**
+     * @summary Look up information about a specific breach
+     * @description Given a provider specific breach ID, find details about the breach.
+     * @operationId user_intel_post_v1_breach
+     * @param request Request to send to v1/breach endpoint
+     * @returns {Promise} - A promise representing an async call to the breach endpoint.
+     * @example
+     * ```js
+     * const response = await userIntel.breach({
+     *  breach_id: "66111",
+     * });
+     * ```
+     */
+    breach(request) {
+        return this.post("v1/breach", request);
+    }
     static isPasswordBreached(response, hash) {
         if (response.result.raw_data === undefined) {
             throw new errors_PangeaErrors.PangeaError("Need raw data to check if hash is breached. Send request with raw=true");
@@ -47291,7 +47307,7 @@ class ShareService extends base {
      * ```js
      * const request = {
      *   transfer_method: TransferMethod.MULTIPART,
-     *   Metadata: {
+     *   metadata: {
      *     created_by: "jim",
      *     priority: "medium",
      *   },
@@ -47349,7 +47365,7 @@ class ShareService extends base {
      *   crc32c,
      *   sha256,
      *   size,
-     *   Metadata: {
+     *   metadata: {
      *     created_by: "jim",
      *     priority: "medium",
      *   },
