@@ -40782,7 +40782,7 @@ var Share;
 
 ;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/config.js
 
-const version = "4.3.0";
+const version = "4.4.0";
 /** Configuration for a Pangea service client. */
 class config_PangeaConfig {
     /** Pangea API domain. */
@@ -40790,8 +40790,9 @@ class config_PangeaConfig {
     /**
      * Pangea environment.
      *
-     * This is intended to facilitate SDK development and should not be touched in
-     * everyday usage.
+     * If set to `ConfigEnv.LOCAL`, then `domain` must be the full host (i.e.,
+     * hostname and port) for the Pangea service that this `PangeaConfig` will be
+     * used for.
      */
     environment = ConfigEnv.PRODUCTION;
     /** Config ID for multi-config projects. */
@@ -42968,7 +42969,7 @@ class request_PangeaRequest {
         }
         else {
             const schema = this.config?.insecure === true ? "http://" : "https://";
-            if (this.config?.environment == ConfigEnv.LOCAL) {
+            if (this.config?.environment === ConfigEnv.LOCAL) {
                 url = `${schema}${this.config.domain}/${path}`;
             }
             else {
@@ -43108,6 +43109,41 @@ class BaseService {
     }
 }
 /* harmony default export */ const base = (BaseService);
+
+;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/services/ai_guard.js
+
+/** AI Guard API client. */
+class AIGuardService extends base {
+    /**
+     * Creates a new `AIGuardService` with the given Pangea API token and
+     * configuration.
+     *
+     * @param token Pangea API token.
+     * @param config Configuration.
+     *
+     * @example
+     * ```js
+     * const config = new PangeaConfig({ domain: "pangea_domain" });
+     * const aiGuard = new AIGuardService("pangea_token", config);
+     * ```
+     *
+     * @summary AI Guard
+     */
+    constructor(token, config) {
+        super("ai-guard", token, config);
+    }
+    /**
+     * @summary Text Guard for scanning LLM inputs and outputs
+     * @description Analyze and redact text to avoid manipulation of the model,
+     *   addition of malicious content, and other undesirable data transfers.
+     * @operationId ai_guard_post_v1_text_guard
+     * @param request Request parameters.
+     */
+    guardText(request) {
+        return this.post("v1/text/guard", request);
+    }
+}
+/* harmony default export */ const ai_guard = (AIGuardService);
 
 ;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/utils/arweave.js
 // Copyright 2021 Pangea Cyber Corporation
@@ -45159,15 +45195,16 @@ class EmbargoService extends base {
 }
 /* harmony default export */ const embargo = (EmbargoService);
 
-;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/services/redact.js
+;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/services/file_scan.js
 
-/**
- * RedactService class provides methods for interacting with the Redact Service
- * @extends BaseService
- */
-class RedactService extends base {
+
+
+
+
+
+class FileScanService extends base {
     /**
-     * Creates a new `RedactService` with the given Pangea API token and
+     * Creates a new `FileScanService` with the given Pangea API token and
      * configuration.
      *
      * @param token Pangea API token.
@@ -45176,85 +45213,106 @@ class RedactService extends base {
      * @example
      * ```js
      * const config = new PangeaConfig({ domain: "pangea_domain" });
-     * const redact = new RedactService("pangea_token", config);
+     * const client = new FileScanService("pangea_token", config);
      * ```
      *
-     * @summary Redact
+     * @summary File Scan
      */
-    constructor(token, config, options = {}) {
-        super("redact", token, config, options.config_id);
+    constructor(token, config) {
+        super("file-scan", token, config);
     }
     /**
-     * @summary Redact
-     * @description Redact sensitive information from provided text.
-     * @operationId redact_post_v1_redact
-     * @param {String} text - The text data to redact
-     * @param {Object} options - Supported options:
-     *   - debug {Boolean} - Setting this value to true will provide a detailed analysis of the redacted
-     * data and the rules that caused redaction
-     *   - rules {String[]} - An array of redact rule short names
-     *   - rulesets {String[]} - An array of redact ruleset short names
-     *   - return_result {Boolean} - Setting this value to false will omit the redacted result only returning count
-     *   - redaction_method_overrides {RedactionMethodOverrides} - A set of redaction method overrides for any enabled rule. These methods override the config declared methods
-     * @returns {Promise} - A promise representing an async call to the redact endpoint
+     * @summary Scan
+     * @description Scan a file for malicious content.
+     * @operationId file_scan_post_v1_scan
+     * @param {FileScan.ScanRequest} request
+     * @param {string} filepath
+     * @param {FileScan.Options} options
+     * @returns {Promise} - A promise representing an async call to the check endpoint
      * @example
      * ```js
-     * const response = await redact.redact(
-     *   "Jenny Jenny... 555-867-5309"
-     * );
+     * const request = { verbose: true, raw: true, provider: "crowdstrike" };
+     * const response = await client.fileScan(request, "./path/to/file.pdf");
      * ```
      */
-    redact(text, options = {}) {
-        let input = {
-            text: text,
+    fileScan(request, file, // This param is optional. It should be null when using the source_url method
+    options = {
+        pollResultSync: true,
+    }) {
+        let fsData = {};
+        if (request.transfer_method === types_TransferMethod.PUT_URL) {
+            throw new errors_PangeaErrors.PangeaError(`${request.transfer_method} not supported in this function. Use getUploadURL() instead.`);
+        }
+        let postFile = undefined;
+        let files = undefined;
+        if (typeof file === "string") {
+            postFile = {
+                name: "file",
+                file: file,
+            };
+        }
+        else {
+            postFile = file;
+        }
+        if (postFile) {
+            files = {
+                file: postFile,
+            };
+        }
+        const postOptions = {
+            pollResultSync: options.pollResultSync,
+            files: files,
         };
-        Object.assign(input, options);
-        return this.post("v1/redact", input);
-    }
-    /**
-     * @summary Redact structured
-     * @description Redact sensitive information from structured data (e.g., JSON).
-     * @operationId redact_post_v1_redact_structured
-     * @param {Object} data - Structured data to redact
-     * @param {Object} options - Supported options:
-     *   - debug {Boolean} - Setting this value to true will provide a detailed analysis of the redacted
-     * data and the rules that caused redaction
-     *   - rules {String[]} - An array of redact rule short names
-     *   - rulesets {String[]} - An array of redact ruleset short names
-     *   - jsonp {String[]} - JSON path(s) used to identify the specific JSON fields to redact in the
-     * structured data. Note: If jsonp parameter is used, the data parameter must be in JSON format.
-     *   - format {String} - The format of the structured data to redact. Default: "json"
-     *   - return_result {Boolean} - Setting this value to false will omit the redacted result only returning count
-     *   - redaction_method_overrides {RedactionMethodOverrides} - A set of redaction method overrides for any enabled rule. These methods override the config declared methods
-     * @returns {Promise} - A promise representing an async call to the redactStructured endpoint
-     * @example
-     * ```js
-     * const response = await redact.redactStructured({
-     *   "phone": "555-867-5309"
-     * });
-     * ```
-     */
-    redactStructured(data, options = {}) {
-        let input = {
-            data: data,
+        if ((!request.transfer_method ||
+            request.transfer_method === types_TransferMethod.POST_URL) &&
+            postFile) {
+            fsData = getFileUploadParams(postFile.file);
+        }
+        const fullRequest = {
+            ...fsData,
+            ...request,
         };
-        Object.assign(input, options);
-        return this.post("v1/redact_structured", input);
+        return this.post("v1/scan", fullRequest, postOptions);
     }
-    /**
-     * @summary Unredact
-     * @description Decrypt or unredact fpe redactions.
-     * @operationId redact_post_v1_unredact
-     * @param request - Unredact request data
-     *   - redacted_data - Data to unredact
-     *   - fpe_context {string} - FPE context used to decrypt and unredact data
-     * @returns {Promise} - A promise representing an async call to the unredact endpoint
-     */
-    unredact(request) {
-        return this.post("v1/unredact", request);
+    // TODO: Docs
+    async requestUploadURL(request, options = {}) {
+        if (request.transfer_method === types_TransferMethod.POST_URL &&
+            !options.params) {
+            throw new errors_PangeaErrors.PangeaError(`If transfer_method is ${types_TransferMethod.POST_URL} need to set options.params`);
+        }
+        let fsParams = {};
+        if (request.transfer_method === types_TransferMethod.POST_URL && options.params) {
+            fsParams = options.params;
+        }
+        const fullRequest = {
+            ...fsParams,
+            ...request,
+        };
+        return await this.request.requestPresignedURL("v1/scan", fullRequest);
     }
 }
-/* harmony default export */ const redact = (RedactService);
+class FileScanUploader {
+    serviceName = "FileScanFileUploader";
+    request_ = undefined;
+    constructor() { }
+    get request() {
+        if (this.request_) {
+            return this.request_;
+        }
+        this.request_ = new PangeaRequest(this.serviceName, "unusedtoken", new PangeaConfig());
+        return this.request_;
+    }
+    // TODO: Docs
+    async uploadFile(url, fileData, options) {
+        if (!options.transfer_method ||
+            options.transfer_method === TransferMethod.PUT_URL) {
+            await this.request.putPresignedURL(url, fileData);
+        }
+        else if (options.transfer_method === TransferMethod.POST_URL) {
+            await this.request.postPresignedURL(url, fileData);
+        }
+    }
+}
 
 ;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/services/intel.js
 
@@ -46239,6 +46297,563 @@ class UserIntelService extends base {
     }
 }
 
+;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/services/prompt_guard.js
+
+/** Prompt Guard API client. */
+class PromptGuardService extends base {
+    /**
+     * Creates a new `PromptGuardService` with the given Pangea API token and
+     * configuration.
+     *
+     * @param token Pangea API token.
+     * @param config Configuration.
+     *
+     * @example
+     * ```js
+     * const config = new PangeaConfig({ domain: "pangea_domain" });
+     * const promptGuard = new PromptGuardService("pangea_token", config);
+     * ```
+     *
+     * @summary Prompt Guard
+     */
+    constructor(token, config) {
+        super("prompt-guard", token, config);
+    }
+    /**
+     * @summary Guard
+     * @description Undocumented.
+     * @operationId prompt_guard_post_v1_guard
+     * @param request Request parameters.
+     * @example
+     * ```ts
+     * const response = await promptGuard.guard({
+     *   messages: [{"role": "user", "content": "text"}]
+     * });
+     * ```
+     */
+    guard(request) {
+        return this.post("v1/guard", request);
+    }
+}
+/* harmony default export */ const prompt_guard = (PromptGuardService);
+
+;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/services/redact.js
+
+/**
+ * RedactService class provides methods for interacting with the Redact Service
+ * @extends BaseService
+ */
+class RedactService extends base {
+    /**
+     * Creates a new `RedactService` with the given Pangea API token and
+     * configuration.
+     *
+     * @param token Pangea API token.
+     * @param config Configuration.
+     *
+     * @example
+     * ```js
+     * const config = new PangeaConfig({ domain: "pangea_domain" });
+     * const redact = new RedactService("pangea_token", config);
+     * ```
+     *
+     * @summary Redact
+     */
+    constructor(token, config, options = {}) {
+        super("redact", token, config, options.config_id);
+    }
+    /**
+     * @summary Redact
+     * @description Redact sensitive information from provided text.
+     * @operationId redact_post_v1_redact
+     * @param {String} text - The text data to redact
+     * @param {Object} options - Supported options:
+     *   - debug {Boolean} - Setting this value to true will provide a detailed analysis of the redacted
+     * data and the rules that caused redaction
+     *   - rules {String[]} - An array of redact rule short names
+     *   - rulesets {String[]} - An array of redact ruleset short names
+     *   - return_result {Boolean} - Setting this value to false will omit the redacted result only returning count
+     *   - redaction_method_overrides {RedactionMethodOverrides} - A set of redaction method overrides for any enabled rule. These methods override the config declared methods
+     * @returns {Promise} - A promise representing an async call to the redact endpoint
+     * @example
+     * ```js
+     * const response = await redact.redact(
+     *   "Jenny Jenny... 555-867-5309"
+     * );
+     * ```
+     */
+    redact(text, options = {}) {
+        let input = {
+            text: text,
+        };
+        Object.assign(input, options);
+        return this.post("v1/redact", input);
+    }
+    /**
+     * @summary Redact structured
+     * @description Redact sensitive information from structured data (e.g., JSON).
+     * @operationId redact_post_v1_redact_structured
+     * @param {Object} data - Structured data to redact
+     * @param {Object} options - Supported options:
+     *   - debug {Boolean} - Setting this value to true will provide a detailed analysis of the redacted
+     * data and the rules that caused redaction
+     *   - rules {String[]} - An array of redact rule short names
+     *   - rulesets {String[]} - An array of redact ruleset short names
+     *   - jsonp {String[]} - JSON path(s) used to identify the specific JSON fields to redact in the
+     * structured data. Note: If jsonp parameter is used, the data parameter must be in JSON format.
+     *   - format {String} - The format of the structured data to redact. Default: "json"
+     *   - return_result {Boolean} - Setting this value to false will omit the redacted result only returning count
+     *   - redaction_method_overrides {RedactionMethodOverrides} - A set of redaction method overrides for any enabled rule. These methods override the config declared methods
+     * @returns {Promise} - A promise representing an async call to the redactStructured endpoint
+     * @example
+     * ```js
+     * const response = await redact.redactStructured({
+     *   "phone": "555-867-5309"
+     * });
+     * ```
+     */
+    redactStructured(data, options = {}) {
+        let input = {
+            data: data,
+        };
+        Object.assign(input, options);
+        return this.post("v1/redact_structured", input);
+    }
+    /**
+     * @summary Unredact
+     * @description Decrypt or unredact fpe redactions.
+     * @operationId redact_post_v1_unredact
+     * @param request - Unredact request data
+     *   - redacted_data - Data to unredact
+     *   - fpe_context {string} - FPE context used to decrypt and unredact data
+     * @returns {Promise} - A promise representing an async call to the unredact endpoint
+     */
+    unredact(request) {
+        return this.post("v1/unredact", request);
+    }
+}
+/* harmony default export */ const redact = (RedactService);
+
+;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/services/sanitize.js
+
+
+
+
+/** Sanitize API client. */
+class SanitizeService extends base {
+    /**
+     * Creates a new `SanitizeService` with the given Pangea API token and
+     * configuration.
+     *
+     * @param token Pangea API token.
+     * @param config Configuration.
+     *
+     * @example
+     * ```js
+     * const config = new PangeaConfig({ domain: "pangea_domain" });
+     * const sanitize = new SanitizeService("pangea_token", config);
+     * ```
+     *
+     * @summary Sanitize
+     */
+    constructor(token, config) {
+        super("sanitize", token, config);
+    }
+    /**
+     * @summary Sanitize
+     * @description Apply file sanitization actions according to specified rules.
+     * @operationId sanitize_post_v1_sanitize
+     * @param request Request parameters.
+     * @param fileData Optional file data for when the "source-url" transfer
+     * method is used.
+     * @param options Additional options.
+     * @returns The sanitized file and information on the sanitization that was
+     * performed.
+     * @example
+     * ```ts
+     * import { readFile } from "node:fs/promises";
+     *
+     * const request: Sanitize.SanitizeRequest = {
+     *   transfer_method: TransferMethod.POST_URL,
+     *   uploaded_file_name: "uploaded_file",
+     * };
+     * const response = await sanitize.sanitize(
+     *   request,
+     *   { file: await readFile("/path/to/file.txt"), name: "filename" }
+     * );
+     * ```
+     */
+    sanitize(request, fileData, options = {
+        pollResultSync: true,
+    }) {
+        let fsData = {};
+        if (request.transfer_method === types_TransferMethod.PUT_URL) {
+            throw new errors_PangeaErrors.PangeaError(`${request.transfer_method} not supported in this function. Use getUploadURL() instead.`);
+        }
+        let files = undefined;
+        if (fileData) {
+            files = {
+                file: fileData,
+            };
+        }
+        const postOptions = {
+            pollResultSync: options.pollResultSync,
+            files: files,
+        };
+        if ((!request.transfer_method ||
+            request.transfer_method === types_TransferMethod.POST_URL) &&
+            fileData) {
+            fsData = getFileUploadParams(fileData.file);
+        }
+        Object.assign(request, fsData);
+        return this.post("v1/sanitize", request, postOptions);
+    }
+    /**
+     * @summary Sanitize via presigned URL
+     * @description Apply file sanitization actions according to specified rules
+     * via a [presigned URL](https://pangea.cloud/docs/api/transfer-methods).
+     * @operationId sanitize_post_v1_sanitize 2
+     * @param request Request parameters.
+     * @returns A presigned URL.
+     * @example
+     * ```ts
+     * const request: Sanitize.SanitizeRequest = {
+     *   transfer_method: TransferMethod.PUT_URL,
+     *   uploaded_file_name: "uploaded_file",
+     * };
+     * const presignedUrl = await sanitize.requestUploadURL(request);
+     *
+     * // Upload file to `presignedUrl.accepted_result.put_url`.
+     *
+     * // Poll for Sanitize's result.
+     * const response = await sanitize.pollResult<Sanitize.SanitizeResult>(presignedUrl.request_id);
+     * ```
+     */
+    async requestUploadURL(request) {
+        if (request.transfer_method === types_TransferMethod.POST_URL &&
+            (!request.size || !request.crc32c || !request.sha256)) {
+            throw new errors_PangeaErrors.PangeaError(`When transfer_method is ${request.transfer_method}, crc32c, sha256 and size must be set. Set them or use transfer_method ${types_TransferMethod.PUT_URL}`);
+        }
+        return await this.request.requestPresignedURL("v1/sanitize", request);
+    }
+}
+/* harmony default export */ const sanitize = (SanitizeService);
+
+;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/services/share.js
+
+
+
+
+
+/**
+ * ShareService class provides methods for interacting with the Share Service
+ * @extends BaseService
+ */
+class ShareService extends base {
+    constructor(token, config) {
+        super("share", token, config);
+    }
+    /**
+     * @summary Buckets
+     * @description Get information on the accessible buckets.
+     * @operationId share_post_v1_buckets
+     * @returns Information on the accessible buckets
+     * @example
+     * ```js
+     * await client.buckets();
+     * ```
+     */
+    buckets() {
+        return this.post("v1/buckets", {});
+    }
+    /**
+     * @summary Delete
+     * @description Delete object by ID or path. If both are supplied, the path must match that of the object represented by the ID.
+     * @operationId share_post_v1_delete
+     * @param {Share.DeleteRequest} request
+     * @returns {Promise} - A promise representing an async call to the delete endpoint.
+     * @example
+     * ```js
+     * const request = { id: "pos_3djfmzg2db4c6donarecbyv5begtj2bm" };
+     * const response = await client.delete(request);
+     * ```
+     */
+    delete(request) {
+        return this.post("v1/delete", request);
+    }
+    /**
+     * @summary Create a folder
+     * @description Create a folder, either by name or path and parent_id.
+     * @operationId share_post_v1_folder_create
+     * @param {Share.FolderCreateRequest} request
+     * @returns {Promise} - A promise representing an async call to the folder create endpoint.
+     * @example
+     * ```js
+     * const request = {
+     *   metadata: {
+     *     created_by: "jim",
+     *     priority: "medium",
+     *   },
+     *   parent_id: "pos_3djfmzg2db4c6donarecbyv5begtj2bm",
+     *   folder: "/",
+     *   tags: ["irs_2023", "personal"],
+     * };
+     *
+     * const response = await client.folderCreate(request);
+     * ```
+     */
+    folderCreate(request) {
+        return this.post("v1/folder/create", request);
+    }
+    /**
+     * @summary Get an object
+     * @description Get object. If both ID and path are supplied, the call will fail if the target object doesn't match both properties.
+     * @operationId share_post_v1_get
+     * @param {Share.GetRequest} request
+     * @returns {Promise} - A promise representing an async call to the get item endpoint.
+     * @example
+     * ```js
+     * const request = { id: "pos_3djfmzg2db4c6donarecbyv5begtj2bm" };
+     * const response = await client.getItem(request);
+     * ```
+     */
+    getItem(request) {
+        return this.post("v1/get", request);
+    }
+    /**
+     * @summary Get archive
+     * @description Get an archive file of multiple objects.
+     * @operationId share_post_v1_get_archive
+     * @param {Share.GetArchiveRequest} request
+     * @returns {Promise} - A promise representing an async call to the get archive endpoint.
+     * @example
+     * ```js
+     * const request = { ids: ["pos_3djfmzg2db4c6donarecbyv5begtj2bm"] };
+     * const response = await client.getArchive(request);
+     * ```
+     */
+    getArchive(request) {
+        return this.post("v1/get_archive", request);
+    }
+    /**
+     * @summary List
+     * @description List or filter/search records.
+     * @operationId share_post_v1_list
+     * @param {Share.ListRequest} request
+     * @returns {Promise} - A promise representing an async call to the list endpoint.
+     * @example
+     * ```js
+     * const request = {};
+     * const response = await client.list(request);
+     * ```
+     */
+    list(request = {}) {
+        return this.post("v1/list", request);
+    }
+    /**
+     * @summary Upload a file
+     * @description Upload a file.
+     * @operationId share_post_v1_put
+     * @param {Share.PutRequest} request
+     * @param {FileData} fileData
+     * @returns {Promise} - A promise representing an async call to the put endpoint.
+     * @example
+     * ```js
+     * const request = {
+     *   transfer_method: TransferMethod.MULTIPART,
+     *   metadata: {
+     *     created_by: "jim",
+     *     priority: "medium",
+     *   },
+     *   parent_id: "pos_3djfmzg2db4c6donarecbyv5begtj2bm",
+     *   folder: "/",
+     *   tags: ["irs_2023", "personal"],
+     * };
+     * const file = fs.readFileSync("./path/to/file.pdf");
+     * const fileData = {
+     *   file,
+     *   name: "file",
+     * };
+     *
+     * const response = await client.put(request, fileData);
+     * ```
+     */
+    put(request, fileData) {
+        // With `source-url`, no file data is needed.
+        if (request.transfer_method === types_TransferMethod.SOURCE_URL) {
+            return this.post("v1/put", request);
+        }
+        // Otherwise, file data is required.
+        if (!fileData) {
+            throw new TypeError("`fileData` is required when `transfer_method` is not `SOURCE_URL`.");
+        }
+        let fsData = {};
+        if (!request.transfer_method ||
+            request.transfer_method === types_TransferMethod.POST_URL) {
+            fsData = getFileUploadParams(fileData.file);
+            request.crc32c = fsData.crc32c;
+            request.sha256 = fsData.sha256;
+            request.size = fsData.size;
+        }
+        else if (getFileSize(fileData.file) === 0) {
+            request.size = 0;
+        }
+        return this.post("v1/put", request, {
+            files: {
+                file: fileData,
+            },
+        });
+    }
+    /**
+     * @summary Request upload URL
+     * @description Request a [presigned URL](https://pangea.cloud/docs/api/transfer-methods).
+     * @operationId share_post_v1_put 2
+     * @param {Share.PutRequest} request
+     * @returns {Promise} - A promise representing an async call to the put endpoint.
+     * @example
+     * ```js
+     * const { crc32c, sha256, size } = getFileUploadParams("./path/to/file.pdf");
+     *
+     * const request = {
+     *   transfer_method: TransferMethod.POST_URL,
+     *   crc32c,
+     *   sha256,
+     *   size,
+     *   metadata: {
+     *     created_by: "jim",
+     *     priority: "medium",
+     *   },
+     *   parent_id: "pos_3djfmzg2db4c6donarecbyv5begtj2bm",
+     *   folder: "/",
+     *   tags: ["irs_2023", "personal"],
+     * };
+     *
+     * const response = await client.requestUploadURL(request);
+     * ```
+     */
+    requestUploadURL(request) {
+        if (request.transfer_method === types_TransferMethod.POST_URL &&
+            (!request.size || !request.crc32c || !request.sha256)) {
+            throw new errors_PangeaErrors.PangeaError(`When transfer_method is ${request.transfer_method}, crc32c, sha256 and size must be set. Set them or use transfer_method ${types_TransferMethod.PUT_URL}`);
+        }
+        return this.request.requestPresignedURL("v1/put", request);
+    }
+    /**
+     * @summary Update a file
+     * @description Update a file.
+     * @operationId share_post_v1_update
+     * @param {Share.UpdateRequest} request
+     * @returns {Promise} - A promise representing an async call to the update endpoint.
+     * @example
+     * ```js
+     * const request = {
+     *   id: "pos_3djfmzg2db4c6donarecbyv5begtj2bm",
+     *   folder: "/",
+     *   remove_metadata: {
+     *     created_by: "jim",
+     *     priority: "medium",
+     *   }
+     *   remove_tags: ["irs_2023", "personal"],
+     * };
+     *
+     * const response = await client.update(request);
+     * ```
+     */
+    update(request) {
+        return this.post("v1/update", request);
+    }
+    /**
+     * @summary Create share links
+     * @description Create a share link.
+     * @operationId share_post_v1_share_link_create
+     * @param {Share.ShareLinkCreateRequest} request
+     * @returns {Promise} - A promise representing an async call to the share link create endpoint.
+     * @example
+     * ```js
+     * const authenticator = {
+     *   auth_type: Share.AuthenticatorType.PASSWORD,
+     *   auth_context: "my_fav_Pa55word",
+     * };
+     * const link = {
+     *   targets: ["pos_3djfmzg2db4c6donarecbyv5begtj2bm"],
+     *   link_type: Share.LinkType.DOWNLOAD,
+     *   authenticators: [authenticator],
+     * };
+     * const request = { links: [link] };
+     * const response = await client.shareLinkCreate(request);
+     * ```
+     */
+    shareLinkCreate(request) {
+        return this.post("v1/share/link/create", request);
+    }
+    /**
+     * @summary Get share link
+     * @description Get a share link.
+     * @operationId share_post_v1_share_link_get
+     * @param {Share.ShareLinkGetRequest} request
+     * @returns {Promise} - A promise representing an async call to the share link get endpoint.
+     * @example
+     * ```js
+     * const request = { id: "psl_3djfmzg2db4c6donarecbyv5begtj2bm" };
+     * const response = await client.shareLinkGet(request);
+     * ```
+     */
+    shareLinkGet(request) {
+        return this.post("v1/share/link/get", request);
+    }
+    /**
+     * @summary List share links
+     * @description Look up share links by filter options.
+     * @operationId share_post_v1_share_link_list
+     * @param {Share.ShareLinkListRequest} request
+     * @returns {Promise} - A promise representing an async call to the share link list endpoint.
+     * @example
+     * ```js
+     * const request = {};
+     * const response = await client.shareLinkList(request);
+     * ```
+     */
+    shareLinkList(request = {}) {
+        return this.post("v1/share/link/list", request);
+    }
+    /**
+     * @summary Delete share links
+     * @description Delete share links.
+     * @operationId share_post_v1_share_link_delete
+     * @param {Share.ShareLinkDeleteRequest} request
+     * @returns {Promise} - A promise representing an async call to the delete share links endpoint.
+     * @example
+     * ```js
+     * const request = { ids: ["psl_3djfmzg2db4c6donarecbyv5begtj2bm"] };
+     * const response = await client.shareLinkDelete(request);
+     * ```
+     */
+    shareLinkDelete(request) {
+        return this.post("v1/share/link/delete", request);
+    }
+    /**
+     * @summary Send share links
+     * @description Send share links.
+     * @operationId share_post_v1_share_link_send
+     * @param {Share.ShareLinkDeleteRequest} request
+     * @returns {Promise} - A promise representing an async call to the send share links endpoint.
+     * @example
+     * ```js
+     *  const resp = await client.shareLinkSend({
+     *    links: [{
+     *      id: linkID,
+     *      email: "user@email.com",
+     *    }],
+     *    sender_email: "sender@email.com",
+     *    sender_name: "Sender Name"
+     *  })
+     */
+    shareLinkSend(request) {
+        return this.post("v1/share/link/send", request);
+    }
+}
+/* harmony default export */ const share = (ShareService);
+
 ;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/services/vault.js
 
 
@@ -46961,545 +47576,6 @@ class VaultService extends base {
 }
 /* harmony default export */ const vault = (VaultService);
 
-;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/services/file_scan.js
-
-
-
-
-
-
-class FileScanService extends base {
-    /**
-     * Creates a new `FileScanService` with the given Pangea API token and
-     * configuration.
-     *
-     * @param token Pangea API token.
-     * @param config Configuration.
-     *
-     * @example
-     * ```js
-     * const config = new PangeaConfig({ domain: "pangea_domain" });
-     * const client = new FileScanService("pangea_token", config);
-     * ```
-     *
-     * @summary File Scan
-     */
-    constructor(token, config) {
-        super("file-scan", token, config);
-    }
-    /**
-     * @summary Scan
-     * @description Scan a file for malicious content.
-     * @operationId file_scan_post_v1_scan
-     * @param {FileScan.ScanRequest} request
-     * @param {string} filepath
-     * @param {FileScan.Options} options
-     * @returns {Promise} - A promise representing an async call to the check endpoint
-     * @example
-     * ```js
-     * const request = { verbose: true, raw: true, provider: "crowdstrike" };
-     * const response = await client.fileScan(request, "./path/to/file.pdf");
-     * ```
-     */
-    fileScan(request, file, // This param is optional. It should be null when using the source_url method
-    options = {
-        pollResultSync: true,
-    }) {
-        let fsData = {};
-        if (request.transfer_method === types_TransferMethod.PUT_URL) {
-            throw new errors_PangeaErrors.PangeaError(`${request.transfer_method} not supported in this function. Use getUploadURL() instead.`);
-        }
-        let postFile = undefined;
-        let files = undefined;
-        if (typeof file === "string") {
-            postFile = {
-                name: "file",
-                file: file,
-            };
-        }
-        else {
-            postFile = file;
-        }
-        if (postFile) {
-            files = {
-                file: postFile,
-            };
-        }
-        const postOptions = {
-            pollResultSync: options.pollResultSync,
-            files: files,
-        };
-        if ((!request.transfer_method ||
-            request.transfer_method === types_TransferMethod.POST_URL) &&
-            postFile) {
-            fsData = getFileUploadParams(postFile.file);
-        }
-        const fullRequest = {
-            ...fsData,
-            ...request,
-        };
-        return this.post("v1/scan", fullRequest, postOptions);
-    }
-    // TODO: Docs
-    async requestUploadURL(request, options = {}) {
-        if (request.transfer_method === types_TransferMethod.POST_URL &&
-            !options.params) {
-            throw new errors_PangeaErrors.PangeaError(`If transfer_method is ${types_TransferMethod.POST_URL} need to set options.params`);
-        }
-        let fsParams = {};
-        if (request.transfer_method === types_TransferMethod.POST_URL && options.params) {
-            fsParams = options.params;
-        }
-        const fullRequest = {
-            ...fsParams,
-            ...request,
-        };
-        return await this.request.requestPresignedURL("v1/scan", fullRequest);
-    }
-}
-class FileScanUploader {
-    serviceName = "FileScanFileUploader";
-    request_ = undefined;
-    constructor() { }
-    get request() {
-        if (this.request_) {
-            return this.request_;
-        }
-        this.request_ = new PangeaRequest(this.serviceName, "unusedtoken", new PangeaConfig());
-        return this.request_;
-    }
-    // TODO: Docs
-    async uploadFile(url, fileData, options) {
-        if (!options.transfer_method ||
-            options.transfer_method === TransferMethod.PUT_URL) {
-            await this.request.putPresignedURL(url, fileData);
-        }
-        else if (options.transfer_method === TransferMethod.POST_URL) {
-            await this.request.postPresignedURL(url, fileData);
-        }
-    }
-}
-
-;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/services/sanitize.js
-
-
-
-
-/** Sanitize API client. */
-class SanitizeService extends base {
-    /**
-     * Creates a new `SanitizeService` with the given Pangea API token and
-     * configuration.
-     *
-     * @param token Pangea API token.
-     * @param config Configuration.
-     *
-     * @example
-     * ```js
-     * const config = new PangeaConfig({ domain: "pangea_domain" });
-     * const sanitize = new SanitizeService("pangea_token", config);
-     * ```
-     *
-     * @summary Sanitize
-     */
-    constructor(token, config) {
-        super("sanitize", token, config);
-    }
-    /**
-     * @summary Sanitize
-     * @description Apply file sanitization actions according to specified rules.
-     * @operationId sanitize_post_v1_sanitize
-     * @param request Request parameters.
-     * @param fileData Optional file data for when the "source-url" transfer
-     * method is used.
-     * @param options Additional options.
-     * @returns The sanitized file and information on the sanitization that was
-     * performed.
-     * @example
-     * ```ts
-     * import { readFile } from "node:fs/promises";
-     *
-     * const request: Sanitize.SanitizeRequest = {
-     *   transfer_method: TransferMethod.POST_URL,
-     *   uploaded_file_name: "uploaded_file",
-     * };
-     * const response = await sanitize.sanitize(
-     *   request,
-     *   { file: await readFile("/path/to/file.pdf"), name: "filename" }
-     * );
-     * ```
-     */
-    sanitize(request, fileData, options = {
-        pollResultSync: true,
-    }) {
-        let fsData = {};
-        if (request.transfer_method === types_TransferMethod.PUT_URL) {
-            throw new errors_PangeaErrors.PangeaError(`${request.transfer_method} not supported in this function. Use getUploadURL() instead.`);
-        }
-        let files = undefined;
-        if (fileData) {
-            files = {
-                file: fileData,
-            };
-        }
-        const postOptions = {
-            pollResultSync: options.pollResultSync,
-            files: files,
-        };
-        if ((!request.transfer_method ||
-            request.transfer_method === types_TransferMethod.POST_URL) &&
-            fileData) {
-            fsData = getFileUploadParams(fileData.file);
-        }
-        Object.assign(request, fsData);
-        return this.post("v1/sanitize", request, postOptions);
-    }
-    /**
-     * @summary Sanitize via presigned URL
-     * @description Apply file sanitization actions according to specified rules
-     * via a [presigned URL](https://pangea.cloud/docs/api/transfer-methods).
-     * @operationId sanitize_post_v1_sanitize 2
-     * @param request Request parameters.
-     * @returns A presigned URL.
-     * @example
-     * ```ts
-     * const request: Sanitize.SanitizeRequest = {
-     *   transfer_method: TransferMethod.PUT_URL,
-     *   uploaded_file_name: "uploaded_file",
-     * };
-     * const presignedUrl = await sanitize.requestUploadURL(request);
-     *
-     * // Upload file to `presignedUrl.accepted_result.put_url`.
-     *
-     * // Poll for Sanitize's result.
-     * const response = await sanitize.pollResult<Sanitize.SanitizeResult>(presignedUrl.request_id);
-     * ```
-     */
-    async requestUploadURL(request) {
-        if (request.transfer_method === types_TransferMethod.POST_URL &&
-            (!request.size || !request.crc32c || !request.sha256)) {
-            throw new errors_PangeaErrors.PangeaError(`When transfer_method is ${request.transfer_method}, crc32c, sha256 and size must be set. Set them or use transfer_method ${types_TransferMethod.PUT_URL}`);
-        }
-        return await this.request.requestPresignedURL("v1/sanitize", request);
-    }
-}
-/* harmony default export */ const sanitize = (SanitizeService);
-
-;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/services/share.js
-
-
-
-
-
-/**
- * ShareService class provides methods for interacting with the Share Service
- * @extends BaseService
- */
-class ShareService extends base {
-    constructor(token, config) {
-        super("share", token, config);
-    }
-    /**
-     * @summary Buckets
-     * @description Get information on the accessible buckets.
-     * @operationId share_post_v1_buckets
-     * @returns Information on the accessible buckets
-     * @example
-     * ```js
-     * await client.buckets();
-     * ```
-     */
-    buckets() {
-        return this.post("v1/buckets", {});
-    }
-    /**
-     * @summary Delete
-     * @description Delete object by ID or path. If both are supplied, the path must match that of the object represented by the ID.
-     * @operationId share_post_v1_delete
-     * @param {Share.DeleteRequest} request
-     * @returns {Promise} - A promise representing an async call to the delete endpoint.
-     * @example
-     * ```js
-     * const request = { id: "pos_3djfmzg2db4c6donarecbyv5begtj2bm" };
-     * const response = await client.delete(request);
-     * ```
-     */
-    delete(request) {
-        return this.post("v1/delete", request);
-    }
-    /**
-     * @summary Create a folder
-     * @description Create a folder, either by name or path and parent_id.
-     * @operationId share_post_v1_folder_create
-     * @param {Share.FolderCreateRequest} request
-     * @returns {Promise} - A promise representing an async call to the folder create endpoint.
-     * @example
-     * ```js
-     * const request = {
-     *   metadata: {
-     *     created_by: "jim",
-     *     priority: "medium",
-     *   },
-     *   parent_id: "pos_3djfmzg2db4c6donarecbyv5begtj2bm",
-     *   folder: "/",
-     *   tags: ["irs_2023", "personal"],
-     * };
-     *
-     * const response = await client.folderCreate(request);
-     * ```
-     */
-    folderCreate(request) {
-        return this.post("v1/folder/create", request);
-    }
-    /**
-     * @summary Get an object
-     * @description Get object. If both ID and path are supplied, the call will fail if the target object doesn't match both properties.
-     * @operationId share_post_v1_get
-     * @param {Share.GetRequest} request
-     * @returns {Promise} - A promise representing an async call to the get item endpoint.
-     * @example
-     * ```js
-     * const request = { id: "pos_3djfmzg2db4c6donarecbyv5begtj2bm" };
-     * const response = await client.getItem(request);
-     * ```
-     */
-    getItem(request) {
-        return this.post("v1/get", request);
-    }
-    /**
-     * @summary Get archive
-     * @description Get an archive file of multiple objects.
-     * @operationId share_post_v1_get_archive
-     * @param {Share.GetArchiveRequest} request
-     * @returns {Promise} - A promise representing an async call to the get archive endpoint.
-     * @example
-     * ```js
-     * const request = { ids: ["pos_3djfmzg2db4c6donarecbyv5begtj2bm"] };
-     * const response = await client.getArchive(request);
-     * ```
-     */
-    getArchive(request) {
-        return this.post("v1/get_archive", request);
-    }
-    /**
-     * @summary List
-     * @description List or filter/search records.
-     * @operationId share_post_v1_list
-     * @param {Share.ListRequest} request
-     * @returns {Promise} - A promise representing an async call to the list endpoint.
-     * @example
-     * ```js
-     * const request = {};
-     * const response = await client.list(request);
-     * ```
-     */
-    list(request = {}) {
-        return this.post("v1/list", request);
-    }
-    /**
-     * @summary Upload a file
-     * @description Upload a file.
-     * @operationId share_post_v1_put
-     * @param {Share.PutRequest} request
-     * @param {FileData} fileData
-     * @returns {Promise} - A promise representing an async call to the put endpoint.
-     * @example
-     * ```js
-     * const request = {
-     *   transfer_method: TransferMethod.MULTIPART,
-     *   metadata: {
-     *     created_by: "jim",
-     *     priority: "medium",
-     *   },
-     *   parent_id: "pos_3djfmzg2db4c6donarecbyv5begtj2bm",
-     *   folder: "/",
-     *   tags: ["irs_2023", "personal"],
-     * };
-     * const file = fs.readFileSync("./path/to/file.pdf");
-     * const fileData = {
-     *   file,
-     *   name: "file",
-     * };
-     *
-     * const response = await client.put(request, fileData);
-     * ```
-     */
-    put(request, fileData) {
-        // With `source-url`, no file data is needed.
-        if (request.transfer_method === types_TransferMethod.SOURCE_URL) {
-            return this.post("v1/put", request);
-        }
-        // Otherwise, file data is required.
-        if (!fileData) {
-            throw new TypeError("`fileData` is required when `transfer_method` is not `SOURCE_URL`.");
-        }
-        let fsData = {};
-        if (!request.transfer_method ||
-            request.transfer_method === types_TransferMethod.POST_URL) {
-            fsData = getFileUploadParams(fileData.file);
-            request.crc32c = fsData.crc32c;
-            request.sha256 = fsData.sha256;
-            request.size = fsData.size;
-        }
-        else if (getFileSize(fileData.file) === 0) {
-            request.size = 0;
-        }
-        return this.post("v1/put", request, {
-            files: {
-                file: fileData,
-            },
-        });
-    }
-    /**
-     * @summary Request upload URL
-     * @description Request a [presigned URL](https://pangea.cloud/docs/api/transfer-methods).
-     * @operationId share_post_v1_put 2
-     * @param {Share.PutRequest} request
-     * @returns {Promise} - A promise representing an async call to the put endpoint.
-     * @example
-     * ```js
-     * const { crc32c, sha256, size } = getFileUploadParams("./path/to/file.pdf");
-     *
-     * const request = {
-     *   transfer_method: TransferMethod.POST_URL,
-     *   crc32c,
-     *   sha256,
-     *   size,
-     *   metadata: {
-     *     created_by: "jim",
-     *     priority: "medium",
-     *   },
-     *   parent_id: "pos_3djfmzg2db4c6donarecbyv5begtj2bm",
-     *   folder: "/",
-     *   tags: ["irs_2023", "personal"],
-     * };
-     *
-     * const response = await client.requestUploadURL(request);
-     * ```
-     */
-    requestUploadURL(request) {
-        if (request.transfer_method === types_TransferMethod.POST_URL &&
-            (!request.size || !request.crc32c || !request.sha256)) {
-            throw new errors_PangeaErrors.PangeaError(`When transfer_method is ${request.transfer_method}, crc32c, sha256 and size must be set. Set them or use transfer_method ${types_TransferMethod.PUT_URL}`);
-        }
-        return this.request.requestPresignedURL("v1/put", request);
-    }
-    /**
-     * @summary Update a file
-     * @description Update a file.
-     * @operationId share_post_v1_update
-     * @param {Share.UpdateRequest} request
-     * @returns {Promise} - A promise representing an async call to the update endpoint.
-     * @example
-     * ```js
-     * const request = {
-     *   id: "pos_3djfmzg2db4c6donarecbyv5begtj2bm",
-     *   folder: "/",
-     *   remove_metadata: {
-     *     created_by: "jim",
-     *     priority: "medium",
-     *   }
-     *   remove_tags: ["irs_2023", "personal"],
-     * };
-     *
-     * const response = await client.update(request);
-     * ```
-     */
-    update(request) {
-        return this.post("v1/update", request);
-    }
-    /**
-     * @summary Create share links
-     * @description Create a share link.
-     * @operationId share_post_v1_share_link_create
-     * @param {Share.ShareLinkCreateRequest} request
-     * @returns {Promise} - A promise representing an async call to the share link create endpoint.
-     * @example
-     * ```js
-     * const authenticator = {
-     *   auth_type: Share.AuthenticatorType.PASSWORD,
-     *   auth_context: "my_fav_Pa55word",
-     * };
-     * const link = {
-     *   targets: ["pos_3djfmzg2db4c6donarecbyv5begtj2bm"],
-     *   link_type: Share.LinkType.DOWNLOAD,
-     *   authenticators: [authenticator],
-     * };
-     * const request = { links: [link] };
-     * const response = await client.shareLinkCreate(request);
-     * ```
-     */
-    shareLinkCreate(request) {
-        return this.post("v1/share/link/create", request);
-    }
-    /**
-     * @summary Get share link
-     * @description Get a share link.
-     * @operationId share_post_v1_share_link_get
-     * @param {Share.ShareLinkGetRequest} request
-     * @returns {Promise} - A promise representing an async call to the share link get endpoint.
-     * @example
-     * ```js
-     * const request = { id: "psl_3djfmzg2db4c6donarecbyv5begtj2bm" };
-     * const response = await client.shareLinkGet(request);
-     * ```
-     */
-    shareLinkGet(request) {
-        return this.post("v1/share/link/get", request);
-    }
-    /**
-     * @summary List share links
-     * @description Look up share links by filter options.
-     * @operationId share_post_v1_share_link_list
-     * @param {Share.ShareLinkListRequest} request
-     * @returns {Promise} - A promise representing an async call to the share link list endpoint.
-     * @example
-     * ```js
-     * const request = {};
-     * const response = await client.shareLinkList(request);
-     * ```
-     */
-    shareLinkList(request = {}) {
-        return this.post("v1/share/link/list", request);
-    }
-    /**
-     * @summary Delete share links
-     * @description Delete share links.
-     * @operationId share_post_v1_share_link_delete
-     * @param {Share.ShareLinkDeleteRequest} request
-     * @returns {Promise} - A promise representing an async call to the delete share links endpoint.
-     * @example
-     * ```js
-     * const request = { ids: ["psl_3djfmzg2db4c6donarecbyv5begtj2bm"] };
-     * const response = await client.shareLinkDelete(request);
-     * ```
-     */
-    shareLinkDelete(request) {
-        return this.post("v1/share/link/delete", request);
-    }
-    /**
-     * @summary Send share links
-     * @description Send share links.
-     * @operationId share_post_v1_share_link_send
-     * @param {Share.ShareLinkDeleteRequest} request
-     * @returns {Promise} - A promise representing an async call to the send share links endpoint.
-     * @example
-     * ```js
-     *  const resp = await client.shareLinkSend({
-     *    links: [{
-     *      id: linkID,
-     *      email: "user@email.com",
-     *    }],
-     *    sender_email: "sender@email.com",
-     *    sender_name: "Sender Name"
-     *  })
-     */
-    shareLinkSend(request) {
-        return this.post("v1/share/link/send", request);
-    }
-}
-/* harmony default export */ const share = (ShareService);
-
 ;// CONCATENATED MODULE: ./node_modules/pangea-node-sdk/dist/esm/services/index.js
 
 
@@ -47512,12 +47588,16 @@ class ShareService extends base {
 
 
 
+
+
 /* harmony default export */ const services = ({
+    AIGuardService: ai_guard,
     AuditService: audit,
     AuthNService: authn,
     AuthZService: authz,
-    EmbargoService: embargo,
     BaseService: base,
+    EmbargoService: embargo,
+    PromptGuardService: prompt_guard,
     RedactService: redact,
     FileIntelService: FileIntelService,
     DomainIntelService: DomainIntelService,
@@ -47688,11 +47768,13 @@ class FileUploader {
 const esm_PangeaConfig = esm_config;
 const esm_PangeaRequest = (/* unused pure expression or super */ null && (_PangeaRequest));
 const esm_PangeaResponse = (/* unused pure expression or super */ null && (_PangeaResponse));
+const esm_AIGuardService = services.AIGuardService;
 const esm_AuditService = services.AuditService;
 const esm_AuthNService = services.AuthNService;
 const esm_AuthZService = services.AuthZService;
 const esm_BaseService = services.BaseService;
 const esm_EmbargoService = services.EmbargoService;
+const esm_PromptGuardService = services.PromptGuardService;
 const esm_RedactService = services.RedactService;
 const esm_FileIntelService = services.FileIntelService;
 const esm_DomainIntelService = services.DomainIntelService;
