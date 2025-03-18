@@ -25,14 +25,14 @@
   },
   "homepage": "https://github.com/actions/javascript-action#readme",
   "dependencies": {
-    "@actions/core": "^1.11.1",
-    "@actions/github": "^6.0.0",
-    "libsodium-wrappers": "^0.7.15",
-    "pangea-node-sdk": "^4.4.0"
+    "@actions/core": "1.11.1",
+    "@actions/github": "6.0.0",
+    "libsodium-wrappers": "0.7.15",
+    "pangea-node-sdk": "4.4.0"
   },
   "devDependencies": {
-    "@vercel/ncc": "^0.38.3",
-    "eslint": "^8.57.1",
-    "jest": "^29.7.0"
+    "@vercel/ncc": "0.38.3",
+    "eslint": "8.57.1",
+    "jest": "29.7.0"
   }
 }
